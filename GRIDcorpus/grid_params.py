@@ -16,7 +16,8 @@ if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
 # GRIDcorpus dataset directory
-GRID_DATA_DIR = '/media/voletiv/01D2BF774AC76280/Datasets/GRIDcorpus'
+# GRID_DATA_DIR = '/media/voletiv/01D2BF774AC76280/Datasets/GRIDcorpus'
+GRID_DATA_DIR = '/home/voletiv/Datasets/GRIDcorpus'
 
 #############################################################
 # IMPORT

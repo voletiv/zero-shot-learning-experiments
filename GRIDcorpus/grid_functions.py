@@ -10,17 +10,77 @@ from lipreader_params import *
 from LSTM_lipreader_function import *
 
 #############################################################
+# MAKE TRAINING AND TESTING DATA
+#############################################################
+
+
+def make_train_test_siI_siOOV_data(train_num_of_words,
+                                   train_val_features, train_val_one_hot_words,
+                                   si_features, si_one_hot_words):
+
+    ########################################
+    # Assign Training and Testing Directories
+    ########################################
+
+    # Train data - speakers speaking certain words
+    # Test data - same speakers speaking other words
+    # SI_Test data - different speakers speaking other words
+
+    all_words_idx = np.arange(GRID_VOCAB_SIZE)
+
+    # Choose words to keep in training data - training words
+    np.random.seed(29)
+    training_words_idx = np.random.choice(all_words_idx, train_num_of_words)
+
+    # Choose those rows in data that contain training words
+    train_data_idx = np.array([i for i in range(
+        len(train_val_dirs)) if train_val_word_idx[i] in training_words_idx])
+
+    # Make the rest of the rows as testing data
+    test_data_idx = np.delete(
+        np.arange(len(train_val_dirs)), train_data_idx)
+
+    # Choose those rows in data that contain training words
+    si_in_vocab_data_idx = np.array(
+        [i for i in range(len(si_dirs)) if si_word_idx[i] in training_words_idx])
+
+    # Make the rest of the rows as testing data
+    si_oov_data_idx = np.delete(
+        np.arange(len(si_dirs)), si_in_vocab_data_idx)
+
+    # TRAIN DATA
+    train_features = train_val_features[train_data_idx]
+    train_one_hot_words = train_val_one_hot_words[train_data_idx]
+
+    # (SPEAKER-DEPENDENT) TEST DATA
+    test_features = train_val_features[test_data_idx]
+    test_one_hot_words = train_val_one_hot_words[test_data_idx]
+
+    # SPEAKER-INDEPENDENT IN-VOCAB DATA
+    si_in_vocab_features = si_features[si_in_vocab_data_idx]
+    si_in_vocab_one_hot_words = si_one_hot_words[si_in_vocab_data_idx]
+
+    # SPEAKER-INDEPENDENT OOV DATA
+    si_oov_features = si_features[si_oov_data_idx]
+    si_oov_one_hot_words = si_one_hot_words[si_oov_data_idx]
+
+    return train_features, train_one_hot_words, \
+        test_features, test_one_hot_words, \
+        si_in_vocab_features, si_in_vocab_one_hot_words, \
+        si_oov_features, si_oov_one_hot_words
+
+#############################################################
 # MAKE FEATURES AND ATTRIBUTES
 #############################################################
 
 
-def make_features_and_attributes(dirs,
-                                 word_numbers,
-                                 word_idx,
-                                 LSTMLipreaderEncoder,
-                                 word_to_attr_matrix):
+def make_features_and_one_hot_words(dirs,
+                                    word_numbers,
+                                    word_idx,
+                                    LSTMLipreaderEncoder,
+                                    word_to_attr_matrix):
     features = np.zeros((len(dirs), LIPREADER_ENCODED_DIM))
-    attributes = np.zeros((len(dirs), word_to_attr_matrix.shape[1]))
+    one_hot_words = np.zeros((len(dirs), GRID_VOCAB_SIZE))
     # For each data point
     for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(dirs, word_numbers, word_idx)), total=len(dirs)):
         # GET SEQUENCE OF MOUTH IMAGES
@@ -54,80 +114,14 @@ def make_features_and_attributes(dirs,
                                                           0) / 255., (NUM_OF_MOUTH_PIXELS,))
         # MAKE FEATURES
         features[i] = LSTMLipreaderEncoder.predict(wordImages)
-        # MAKE ATTRIBUTES
-        attributes[i] = word_to_attr_matrix[wordIndex]
+        # MAKE ONE HOT WORDS
+        one_hot_words[i][wordIndex] = 1
     # Return
-    return features, attributes
+    return features, one_hot_words
 
 #############################################################
-# MAKE TRAINING AND TESTING DATA
+# GET DIRS, WORDNUMBERS, WORDIDX
 #############################################################
-
-
-def make_train_test_siInV_siOOV_data(train_num_of_words):
-
-    ########################################
-    # Read GRIDcorpus directories, etc.
-    ########################################
-
-    train_val_dirs, train_val_word_numbers, train_val_word_idx, \
-        si_dirs, si_word_numbers, si_word_idx \
-        = get_train_val_si_dirs_wordnumbers_wordidx()
-
-    ########################################
-    # Assign Training and Testing Directories
-    ########################################
-
-    # Train data - speakers speaking certain words
-    # Test data - same speakers speaking other words
-    # SI_Test data - different speakers speaking other words
-
-    all_words_idx = np.arange(GRID_VOCAB_SIZE)
-
-    # Choose words to keep in training data - training words
-    np.random.seed(29)
-    training_words_idx = np.random.choice(all_words_idx, train_num_of_words)
-
-    # Choose those rows in data that contain training words
-    train_data_idx = np.array([i for i in range(
-        len(train_val_dirs)) if train_val_word_idx[i] in training_words_idx])
-
-    # Make the rest of the rows as testing data
-    test_data_idx = np.delete(
-        np.arange(len(train_val_dirs)), train_data_idx)
-
-    # Choose those rows in data that contain training words
-    si_in_vocab_data_idx = np.array(
-        [i for i in range(len(si_dirs)) if si_word_idx[i] in training_words_idx])
-
-    # Make the rest of the rows as testing data
-    si_oov_data_idx = np.delete(
-        np.arange(len(si_dirs)), si_in_vocab_data_idx)
-
-    # TRAINING DATA
-    train_dirs = train_val_dirs[train_data_idx]
-    train_word_numbers = train_val_word_numbers[train_data_idx]
-    train_word_idx = train_val_word_idx[train_data_idx]
-
-    # (SPEAKER-DEPENDENT) TESTING DATA
-    test_dirs = train_val_dirs[test_data_idx]
-    test_word_numbers = train_val_word_numbers[test_data_idx]
-    test_word_idx = train_val_word_idx[test_data_idx]
-
-    # SPEAKER-INDEPENDENT IN-VOCAB DATA
-    si_in_vocab_dirs = si_dirs[si_in_vocab_data_idx]
-    si_in_vocab_word_numbers = si_word_numbers[si_in_vocab_data_idx]
-    si_in_vocab_word_idx = si_word_idx[si_in_vocab_data_idx]
-
-    # SPEAKER-INDEPENDENT OOV DATA
-    si_oov_dirs = si_dirs[si_oov_data_idx]
-    si_oov_word_numbers = si_word_numbers[si_oov_data_idx]
-    si_oov_word_idx = si_word_idx[si_oov_data_idx]
-
-    return training_words_idx, train_dirs, train_word_numbers, train_word_idx, \
-        test_dirs, test_word_numbers, test_word_idx, \
-        si_in_vocab_dirs, si_in_vocab_word_numbers, si_in_vocab_word_idx, \
-        si_oov_dirs, si_oov_word_numbers, si_oov_word_idx
 
 
 def get_train_val_si_dirs_wordnumbers_wordidx(
@@ -185,8 +179,8 @@ def get_train_val_si_dirs_wordnumbers_wordidx(
     si_words = si_words[si_rows_to_keep]
     si_word_idx = si_word_idx[si_rows_to_keep]
 
-    return train_val_dirs, train_val_word_numbers, \
-        train_val_word_idx, si_dirs, si_word_numbers, si_word_idx
+    return train_val_dirs, train_val_word_numbers, train_val_word_idx, \
+        si_dirs, si_word_numbers, si_word_idx
 
 
 #############################################################
@@ -194,8 +188,10 @@ def get_train_val_si_dirs_wordnumbers_wordidx(
 #############################################################
 
 
-def load_speakerdirs_wordnums_words_lists(trainValSpeakersList=[1, 2, 3, 4, 5, 6, 7, 10],
-                                          siList=[13, 14]):
+def load_speakerdirs_wordnums_words_lists(
+    trainValSpeakersList=[1, 2, 3, 4, 5, 6, 7, 10],
+    siList=[13, 14]
+):
     # TRAIN AND VAL
     trainValDirs = []
     trainValWordNumbers = []
@@ -260,7 +256,7 @@ def load_speakerdirs_wordnums_words_lists(trainValSpeakersList=[1, 2, 3, 4, 5, 6
 
 
 def load_LSTM_lipreader_and_encoder():
-    LSTMLipReaderModel, LSTMLipreaderEncoder, fileNamePre = make_LSTM_lipreader_model()
+    LSTMLipReaderModel, LSTMLipreaderEncoder, _ = make_LSTM_lipreader_model()
     LSTMLipReaderModel.load_weights(LIPREADER_MODEL_FILE)
     return LSTMLipReaderModel, LSTMLipreaderEncoder
 

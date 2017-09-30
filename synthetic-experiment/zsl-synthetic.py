@@ -12,13 +12,13 @@ FTACC = []
 z = 100
 
 # Number of atributes
-a = 100
+a = 10
 
 # Input dim
 d = 10
 
 # Number of test classes
-t = 500
+t = 100
 
 # S === axz
 S = np.random.binomial(1, .5, size=(a, z))
@@ -240,7 +240,7 @@ def zsl_synth_plot(z_=100, t_=100, a_=100, d_=10):
 # # Find optimal g and l
 # idx = np.argmax(vAcc)
 # optG = math.pow(10, b[idx // len(b)])
-# optL = math.pow(10, b[idx - (gIdx*len(b))])
+# optL = math.pow(10, b[idx - ((idx//len(b))*len(b))])
 
 # # tAcc = np.array(tAcc).reshape((len(b), len(b)))
 # # vAcc = np.array(vAcc).reshape((len(b), len(b)))
@@ -249,4 +249,92 @@ def zsl_synth_plot(z_=100, t_=100, a_=100, d_=10):
 # # plt.subplot(122)
 # # plt.imshow(vAcc, cmap='gray', clim=(0., 1.))
 # # plt.show()
+
+
+#######################################
+# Training with full S
+#######################################
+
+# Number of training classes
+z = 100
+
+# Number of test classes
+t = 200
+
+# Number of atributes
+a = 100
+
+# Input dim
+d = 10
+
+def acc_with_fullS(z=100, t=100, a=100, d=100):
+    # S === axz
+    S = np.random.binomial(1, .5, size=(a, z+t))
+    # V === dxa
+    V = np.random.normal(0, 1, (d, a))
+    instancesPerClass = 50
+    # X === dxm
+    # X has 50 instances of each class => m = 50*z
+    # Xa === axm
+    # Y === mxz
+    Xa = np.empty((a, 0))
+    VXa = np.empty((a, 0))
+    Y = np.empty((0, z+t))
+    VY = np.empty((0, z+t))
+    for c in range(z):
+        xa = np.tile(np.array(S[:, c]).reshape((a, 1)), instancesPerClass) + np.random.normal(0, 0.1, (a, instancesPerClass))
+        Xa = np.hstack((Xa, xa))
+        va = np.tile(np.array(S[:, c]).reshape((a, 1)), instancesPerClass) + np.random.normal(0, 0.1, (a, instancesPerClass))
+        VXa = np.hstack((VXa, va))
+        y = np.zeros(z+t)
+        y[c] = 1
+        Y = np.vstack((Y, np.tile(y.reshape((1, z+t)), instancesPerClass).reshape((instancesPerClass, z+t))))
+        vy = np.zeros(z+t)
+        vy[c] = 1
+        VY = np.vstack((VY, np.tile(vy.reshape((1, z+t)), instancesPerClass).reshape((instancesPerClass, z+t))))
+    # X = V . Xa
+    X = np.dot(V, Xa)
+    VX = np.dot(V, VXa)
+    # ESTIMATE V
+    # predV = ((X.X^T + gI)^(-1)).X.Y.S^T.((S.S^T + lI)^(-1))
+    # dxa === dxd . dxm . mxz . zxa . axa === dxa
+    optG = 1000.
+    optL = 1.
+    # Find optimal V
+    optV = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(X, X.T) + optG*np.eye(d)), X), Y), S.T), np.linalg.inv(np.dot(S, S.T) + optL*np.eye(a)))
+    # Preds
+    predTrainClass = np.argmax(np.dot(np.dot(X.T, optV), S), axis=1)
+    trainClass = np.argmax(Y, axis=1)
+    trainAcc = np.sum(trainClass == predTrainClass)/len(trainClass)
+    predValClass = np.argmax(np.dot(np.dot(VX.T, optV), S), axis=1)
+    valClass = np.argmax(VY, axis=1)
+    valAcc = np.sum(valClass == predValClass)/len(valClass)
+    # Test instances
+    TXa = np.empty((a, 0))
+    TY = np.empty((0, z+t))
+    for c in range(z, z+t):
+        txa = np.tile(np.array(S[:, c]).reshape((a, 1)), instancesPerClass) + np.random.normal(0, 0.1, (a, instancesPerClass))
+        TXa = np.hstack((TXa, txa))
+        ty = np.zeros(z+t)
+        ty[c] = 1
+        TY = np.vstack((TY, np.tile(ty.reshape((1, z+t)), instancesPerClass).reshape((instancesPerClass, z+t))))
+    # T = V . Ta
+    TX = np.dot(V, TXa)
+    # Preds
+    predTestClass = np.argmax(np.dot(np.dot(TX.T, optV), S), axis=1)
+    testClass = np.argmax(TY, axis=1)
+    testAcc = np.sum(testClass == predTestClass)/len(testClass)
+    print(trainAcc, valAcc, testAcc)
+    return trainAcc, valAcc, testAcc
+
+
+acc = []
+vAcc = []
+tAcc = []
+for d in tqdm.tqdm(range(1, 500, 10)):
+    for a in range(1, 200, 10):
+        trainAcc, valAcc, testAcc = acc_with_fullS(z=100, t=100, a=a, d=d)
+        acc.append(trainAcc)
+        vAcc.append(valAcc)
+        tAcc.append(testAcc)
 
