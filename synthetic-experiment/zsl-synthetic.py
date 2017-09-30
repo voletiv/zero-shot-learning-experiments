@@ -52,7 +52,7 @@ VX = np.dot(V, VXa)
 
 # ESTIMATE V
 # predV = ((X.X^T + gI)^(-1)).X.Y.S^T.((S.S^T + lI)^(-1))
-# === dxd . dxm . mxz . zxa . axa === dxa
+# dxa === dxd . dxm . mxz . zxa . axa === dxa
 
 optG = 1000.
 optL = 1.

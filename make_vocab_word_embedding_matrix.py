@@ -13,8 +13,9 @@ import os
 
 from gensim.models import KeyedVectors
 
-from common_functions import *
-from GRIDcorpus.grid-params import *
+from common_params import *
+from GRIDcorpus.grid_params import *
+from LRW.lrw_params import *
 
 ########################################
 ## Params
@@ -28,17 +29,6 @@ WORD2VEC_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/Word2V
 # 'wiki.en.vec' is saved
 FASTTEXT_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/FastText'
 
-LRW_VOCAB_LIST_FILE = 'LRW/lrw-vocabulary.txt'
-
-GRID_VOCAB_LIST_FILE = 'GRIDcorpus/grid-vocabulary.txt'
-
-LRW_VOCAB_SIZE = 500
-
-# Actually, GRID_VOCAB_SIZE = 51,
-# but 'a' is missing from word2vec vocab,
-# so GRID_VOCAB_SIZE is made 50
-GRID_VOCAB_SIZE = 50
-
 # word2vec, fasttext dim
 EMBEDDING_DIM = 300
 
@@ -46,9 +36,10 @@ EMBEDDING_DIM = 300
 # Load vocabularies
 ########################################
 
-lrw_vocab = load_lrw_vocab_list(LRW_VOCAB_LIST_FILE)
+# lrw_vocab = load_lrw_vocab_list(LRW_VOCAB_LIST_FILE)
+# grid_vocab = load_gridcorpus_vocab_list(GRID_VOCAB_LIST_FILE)
 
-grid_vocab = load_gridcorpus_vocab_list(GRID_VOCAB_LIST_FILE)
+# Vocabularies loaded by GRIDcorpus.grid_params and LRW.lrw_params
 
 ########################################
 # Load word2vec, fasttext binary files
@@ -67,51 +58,19 @@ fasttextBinFile = os.path.join(FASTTEXT_BIN_SAVED_DIR,
 fasttext = KeyedVectors.load_word2vec_format(fasttextBinFile)
 
 ########################################
-# Check for words being in word2vec
-########################################
-
-# lrw_vocab in word2vec
-# All 500 words in lrw_vocab are present in word2vec vocab
-for word in lrw_vocab:
-    if word not in word2vec.vocab:
-        print(word)
-
-# lrw_vocab in fasttext
-# All 500 words in lrw_vocab are present in word2vec vocab
-for word in lrw_vocab:
-    if word not in fasttext.vocab:
-        print(word)
-
-# grid_vocab in word2vec
-# 50 of 51 words in grid_vocab are present in word2vec vocab
-# 'a' is missing
-for word in grid_vocab:
-    if word not in word2vec.vocab:
-        print(word)
-        grid_vocab.remove(word)
-
-# grid_vocab in fasttext
-# 50 of 51 words in grid_vocab are present in word2vec vocab
-# 'a' is missing
-for word in grid_vocab:
-    if word not in fasttext.vocab:
-        print(word)
-        grid_vocab.remove(word)
-
-########################################
 # Make word2vec embedding matrices
 ########################################
 
 # LRW
 lrw_embedding_matrix_word2vec = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
 
-for i, word in enumerate(lrw_vocab):
+for i, word in enumerate(LRW_VOCAB):
     lrw_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
 
 # GRIDcorpus
 grid_embedding_matrix_word2vec = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
 
-for i, word in enumerate(grid_vocab):
+for i, word in enumerate(GRID_VOCAB):
     grid_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
 
 ########################################
@@ -121,13 +80,13 @@ for i, word in enumerate(grid_vocab):
 # LRW
 lrw_embedding_matrix_fasttext = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
 
-for i, word in enumerate(lrw_vocab):
+for i, word in enumerate(LRW_VOCAB):
     lrw_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
 
 # GRIDcorpus
 grid_embedding_matrix_fasttext = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
 
-for i, word in enumerate(grid_vocab):
+for i, word in enumerate(GRID_VOCAB):
     grid_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
 
 ########################################
@@ -141,3 +100,37 @@ np.save("grid_embedding_matrix_word2vec", grid_embedding_matrix_word2vec)
 np.save("lrw_embedding_matrix_fasttext", lrw_embedding_matrix_fasttext)
 
 np.save("grid_embedding_matrix_fasttext", grid_embedding_matrix_fasttext)
+
+
+# ########################################
+# # Check for words being in word2vec
+# ########################################
+
+# # lrw_vocab in word2vec
+# # All 500 words in lrw_vocab are present in word2vec vocab
+# for word in LRW_VOCAB:
+#     if word not in word2vec.vocab:
+#         print(word)
+
+# # lrw_vocab in fasttext
+# # All 500 words in lrw_vocab are present in word2vec vocab
+# for word in LRW_VOCAB:
+#     if word not in fasttext.vocab:
+#         print(word)
+
+# # grid_vocab in word2vec
+# # 50 of 51 words in grid_vocab are present in word2vec vocab
+# # 'a' is missing
+# for word in GRID_VOCAB:
+#     if word not in word2vec.vocab:
+#         print(word)
+#         grid_vocab.remove(word)
+
+# # grid_vocab in fasttext
+# # 50 of 51 words in grid_vocab are present in word2vec vocab
+# # 'a' is missing
+# for word in GRID_VOCAB:
+#     if word not in fasttext.vocab:
+#         print(word)
+#         grid_vocab.remove(word)
+
