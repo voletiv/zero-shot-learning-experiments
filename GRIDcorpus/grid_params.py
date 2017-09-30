@@ -10,7 +10,8 @@ import sys
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
 
 # Lip reader directory
-sys.path.append(os.path.normpath(os.path.join(CURR_DIR, '../Lipreader')))
+LIPREADER_DIR = os.path.normpath(os.path.join(CURR_DIR, '../Lipreader'))
+sys.path.append(LIPREADER_DIR)
 
 # GRIDcorpus dataset directory
 GRID_DIR = '/media/voletiv/01D2BF774AC76280/Datasets/GRIDcorpus'

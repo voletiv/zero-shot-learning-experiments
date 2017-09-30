@@ -1,9 +1,11 @@
+import inspect
 import glob
 import numpy as np
 import os
 import tqdm
 
 from grid_params import *
+from LSTM_lipreader_function import *
 
 #############################################################
 # LOAD SPEAKER_DIRS, WORD_NUMBERS, WORDS
@@ -44,12 +46,10 @@ def load_speakerdirs_wordnums_words_lists(trainValSpeakersList=[1, 2, 3, 4, 5, 6
 #############################################################
 
 
-def load_LSTM_lipreader_and_encoder():
-    LSTMLipReaderModel, LSTMEncoder, fileNamePre = make_LSTM_lipreader_model()
-    LSTMLipReaderModel.load_weights(os.path.join(
-        LSTMModelSavedDir,
-        'LSTMLipReader-revSeq-Mask-LSTMh256-tanh-depth2-enc64-relu-adam-1e-03-tMouth-valMouth-NOmeanSub-GRIDcorpus-s0107-10-si-s1314-10PercentSelfTraining-LRthresh0.90-iter00-epoch079-tl1.1377-ta0.6460-vl1.5886-va0.5360-sil3.9002-sia0.2181.hdf5'))
-    return LSTMLipReaderModel, LSTMEncoder
+def load_LSTM_lipreader_encoder():
+    LSTMLipReaderModel, LSTMLipreaderEncoder, fileNamePre = make_LSTM_lipreader_model()
+    LSTMLipReaderModel.load_weights(os.path.join(LIPREADER_DIR, 'LSTMLipReader-revSeq-Mask-LSTMh256-LSTMactivtanh-depth2-enc64-encodedActivrelu-Adam-1e-03-GRIDcorpus-s0107-09-tMouth-valMouth-NOmeanSub-epoch078-tl0.2384-ta0.9224-vl0.5184-va0.8503-sil4.9063-sia0.2393.hdf5'))
+    return LSTMLipreaderEncoder
 
 
 def make_LSTM_lipreader_model():

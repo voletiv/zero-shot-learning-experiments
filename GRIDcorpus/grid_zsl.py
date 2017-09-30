@@ -1,3 +1,5 @@
+# PERFORM ZERO SHOT LEARNING ON GRIDCORPUS
+
 from grid_functions import *
 from grid_params import *
 
@@ -25,6 +27,8 @@ class_to_attr_matrix_fasttext = np.load(os.path.join(CURR_DIR,
 ########################################
 ## Read LipReader
 ########################################
+
+LSTMLipreaderEncoder = load_LSTM_lipreader_encoder()
 
 ########################################
 ## Read GRIDcorpus directories

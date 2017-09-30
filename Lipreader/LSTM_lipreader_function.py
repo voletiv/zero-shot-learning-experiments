@@ -25,7 +25,7 @@ NUM_OF_MOUTH_PIXELS = 1600
 #################################################################
 
 
-def LSTM_lipreader(wordsVocabSize=WORDS_VOCAB_SIZE,
+def LSTM_lipreader(wordsVocabSize=51,
                     useMask=False,
                     hiddenDim=100,
                     LSTMactiv='tanh',
