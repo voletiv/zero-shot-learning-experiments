@@ -10,65 +10,128 @@ from lipreader_params import *
 from LSTM_lipreader_function import *
 
 #############################################################
-# MAKE TRAINING AND TESTING DATA
+# LEARN V AND CALCULATE ACCURACIES
 #############################################################
 
 
-def make_train_test_siI_siOOV_data(train_num_of_words,
-                                   train_val_word_idx, si_word_idx,
-                                   train_val_features, train_val_one_hot_words,
-                                   si_features, si_one_hot_words):
+def learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
+                          train_val_features, train_val_one_hot_words,
+                          si_features=None, si_one_hot_words=None,
+                          optG=1e-6, optL=1e-3):
+    predVs = []
+    train_accs = []
+    test_accs = []
+    si_in_vocab_accs = []
+    si_oov_accs = []
+    si_accs = []
 
-    ########################################
-    # Assign Training and Testing Directories
-    ########################################
+    # For each value of number of training classes
+    for train_num_of_words in train_num_of_words_list:
 
-    # Train data - speakers speaking certain words
-    # Test data - same speakers speaking other words
-    # SI_Test data - different speakers speaking other words
+        ########################################
+        # Split into train and test (OOV) data
+        ########################################
 
-    all_words_idx = np.arange(GRID_VOCAB_SIZE)
+        # Choose words for training
+        training_words_idx = choose_words_for_training(
+            train_num_of_words, GRID_VOCAB_SIZE)
 
+        # Split train_val into training and testing
+        train_features, train_one_hot_words, test_features, test_one_hot_words \
+            = split_into_in_vocab_and_oov(training_words_idx,
+                                          train_val_features, train_val_one_hot_words)
+
+        # Split si into training and testing
+        if si_features is not None and si_one_hot_words is not None:
+            si_in_vocab_features, si_in_vocab_one_hot_words, \
+                si_oov_features, si_oov_one_hot_words \
+                = split_into_in_vocab_and_oov(training_words_idx,
+                                              si_features, si_one_hot_words)
+
+        ########################################
+        # EMBARRASSINGLY SIMPLE LEARNING
+        ########################################
+        # predV = ((X.X^T + gI)^(-1)).X.Y.S^T.((S.S^T + lI)^(-1))
+        # === dxa = (dxd) . dxm . mxz . zxa . (axa)
+        predV = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(
+            train_features.T, train_features) + optG * np.eye(train_features.shape[1])),
+            train_features.T), train_one_hot_words), word_to_attr_matrix),
+            np.linalg.inv(np.dot(word_to_attr_matrix.T, word_to_attr_matrix) + optL * np.eye(word_to_attr_matrix.shape[1])))
+
+        predVs.append(predV)
+
+        ########################################
+        # ACCURACY CALCULATION
+        ########################################
+
+        # Train Acc
+        y_train_preds = np.argmax(
+            np.dot(np.dot(train_features, predV), word_to_attr_matrix.T), axis=1)
+        train_accs.append(np.sum(y_train_preds == np.argmax(
+            train_one_hot_words, axis=1)) / len(train_one_hot_words))
+
+        # Test Acc
+        y_test_preds = np.argmax(
+            np.dot(np.dot(test_features, predV), word_to_attr_matrix.T), axis=1)
+        test_accs.append(np.sum(y_test_preds == np.argmax(
+            test_one_hot_words, axis=1)) / len(test_one_hot_words))
+
+        if si_features is not None and si_one_hot_words is not None:
+            # SI in vocab Acc
+            y_si_in_vocab_preds = np.argmax(
+                np.dot(np.dot(si_in_vocab_features, predV), word_to_attr_matrix.T), axis=1)
+            si_in_vocab_accs.append(np.sum(y_si_in_vocab_preds == np.argmax(
+                si_in_vocab_one_hot_words, axis=1)) / len(si_in_vocab_one_hot_words))
+
+            # SI OOV Acc
+            y_si_oov_preds = np.argmax(
+                np.dot(np.dot(si_oov_features, predV), word_to_attr_matrix.T), axis=1)
+            si_oov_accs.append(np.sum(y_si_oov_preds == np.argmax(
+                si_oov_one_hot_words, axis=1)) / len(si_oov_one_hot_words))
+
+            # SI Acc
+            y_si_preds = np.append(y_si_in_vocab_preds, y_si_oov_preds)
+            si_accs.append(np.sum(y_si_preds == np.append(np.argmax(
+                si_in_vocab_one_hot_words, axis=1), np.argmax(si_oov_one_hot_words, axis=1))) / len(y_si_preds))
+
+    return predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs
+
+#############################################################
+# CHOOSE WORDS FOR TRAINING, REST FOR OOV TESTING
+#############################################################
+
+
+def choose_words_for_training(train_num_of_words, vocab_size=GRID_VOCAB_SIZE):
     # Choose words to keep in training data - training words
     np.random.seed(29)
-    training_words_idx = np.random.choice(all_words_idx, train_num_of_words)
+    training_words_idx = np.random.choice(
+        np.arange(vocab_size), train_num_of_words)
+    return training_words_idx
+
+#############################################################
+# SPLIT INTO IN_VOCAB AND OOV
+#############################################################
+
+
+def split_into_in_vocab_and_oov(training_words_idx, features, one_hot_words):
 
     # Choose those rows in data that contain training words
-    train_data_idx = np.array([i for i in range(
-        len(train_val_word_idx)) if train_val_word_idx[i] in training_words_idx])
+    in_vocab_data_idx = np.array([i for i in range(
+        len(one_hot_words)) if np.argmax(one_hot_words[i]) in training_words_idx])
 
     # Make the rest of the rows as testing data
-    test_data_idx = np.delete(
-        np.arange(len(train_val_word_idx)), train_data_idx)
+    oov_data_idx = np.delete(
+        np.arange(len(one_hot_words)), in_vocab_data_idx)
 
-    # Choose those rows in data that contain training words
-    si_in_vocab_data_idx = np.array(
-        [i for i in range(len(si_word_idx)) if si_word_idx[i] in training_words_idx])
-
-    # Make the rest of the rows as testing data
-    si_oov_data_idx = np.delete(
-        np.arange(len(si_word_idx)), si_in_vocab_data_idx)
-
-    # TRAIN DATA
-    train_features = train_val_features[train_data_idx]
-    train_one_hot_words = train_val_one_hot_words[train_data_idx]
+    # IN_VOCAB
+    in_vocab_features = features[in_vocab_data_idx]
+    in_vocab_one_hot_words = one_hot_words[in_vocab_data_idx]
 
     # (SPEAKER-DEPENDENT) TEST DATA
-    test_features = train_val_features[test_data_idx]
-    test_one_hot_words = train_val_one_hot_words[test_data_idx]
+    oov_features = features[oov_data_idx]
+    oov_one_hot_words = one_hot_words[oov_data_idx]
 
-    # SPEAKER-INDEPENDENT IN-VOCAB DATA
-    si_in_vocab_features = si_features[si_in_vocab_data_idx]
-    si_in_vocab_one_hot_words = si_one_hot_words[si_in_vocab_data_idx]
-
-    # SPEAKER-INDEPENDENT OOV DATA
-    si_oov_features = si_features[si_oov_data_idx]
-    si_oov_one_hot_words = si_one_hot_words[si_oov_data_idx]
-
-    return train_features, train_one_hot_words, \
-        test_features, test_one_hot_words, \
-        si_in_vocab_features, si_in_vocab_one_hot_words, \
-        si_oov_features, si_oov_one_hot_words
+    return in_vocab_features, in_vocab_one_hot_words, oov_features, oov_one_hot_words
 
 #############################################################
 # MAKE FEATURES AND ATTRIBUTES

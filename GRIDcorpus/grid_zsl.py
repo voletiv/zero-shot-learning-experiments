@@ -78,56 +78,6 @@ si_features, si_one_hot_words = make_features_and_one_hot_words(
 # Calc Acc
 ########################################
 
-
-def find_accs(train_num_of_words_list, word_to_attr_matrix):
-    train_accs = []
-    test_accs = []
-    si_in_vocab_accs = []
-    si_oov_accs = []
-    si_accs = []
-    for train_num_of_words in train_num_of_words_list:
-        # Split
-        train_features, train_one_hot_words, test_features, test_one_hot_words, \
-            si_in_vocab_features, si_in_vocab_one_hot_words, \
-            si_oov_features, si_oov_one_hot_words \
-            = make_train_test_siI_siOOV_data(
-                train_num_of_words,
-                train_val_word_idx, si_word_idx,
-                train_val_features, train_val_one_hot_words,
-                si_features, si_one_hot_words)
-        # Pred V
-        optG = 1e-6
-        optL = 1e-3
-        predV = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(
-            train_features.T, train_features) + optG * np.eye(train_features.shape[1])),
-            train_features.T), train_one_hot_words), word_to_attr_matrix),
-            np.linalg.inv(np.dot(word_to_attr_matrix.T, word_to_attr_matrix) + optL * np.eye(word_to_attr_matrix.shape[1])))
-        # Train Acc
-        y_train_preds = np.argmax(
-            np.dot(np.dot(train_features, predV), word_to_attr_matrix.T), axis=1)
-        train_accs.append(np.sum(y_train_preds == np.argmax(
-            train_one_hot_words, axis=1)) / len(train_one_hot_words))
-        # Test Acc
-        y_test_preds = np.argmax(
-            np.dot(np.dot(test_features, predV), word_to_attr_matrix.T), axis=1)
-        test_accs.append(np.sum(y_test_preds == np.argmax(
-            test_one_hot_words, axis=1)) / len(test_one_hot_words))
-        # SI in vocab Acc
-        y_si_in_vocab_preds = np.argmax(
-            np.dot(np.dot(si_in_vocab_features, predV), word_to_attr_matrix.T), axis=1)
-        si_in_vocab_accs.append(np.sum(y_si_in_vocab_preds == np.argmax(
-            si_in_vocab_one_hot_words, axis=1)) / len(si_in_vocab_one_hot_words))
-        # SI OOV Acc
-        y_si_oov_preds = np.argmax(
-            np.dot(np.dot(si_oov_features, predV), word_to_attr_matrix.T), axis=1)
-        si_oov_accs.append(np.sum(y_si_oov_preds == np.argmax(
-            si_oov_one_hot_words, axis=1)) / len(si_oov_one_hot_words))
-        # SI Acc
-        y_si_preds = np.append(y_si_in_vocab_preds, y_si_oov_preds)
-        si_accs.append(np.sum(y_si_preds == np.append(np.argmax(
-            si_in_vocab_one_hot_words, axis=1), np.argmax(si_oov_one_hot_words, axis=1))) / len(y_si_preds))
-    return train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs
-
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
 train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
@@ -139,119 +89,79 @@ print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
 # Reduce dimensions of word_to_attr_matrix
 
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
-reduced_word_to_attr_matrix = word_to_attr_matrix[:, :100]
 
-train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
-    train_num_of_words_list, reduced_word_to_attr_matrix)
+tr_a = []
+te_a = []
+sii_a = []
+sio_a = []
+si_a = []
+for reduced_dim in tqdm.tqdm(range(1, 30)):
+    reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
+    train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
+        train_num_of_words_list, reduced_word_to_attr_matrix)
+    print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
+    tr_a.append(train_accs)
+    te_a.append(test_accs)
+    sii_a.append(si_in_vocab_accs)
+    sio_a.append(si_oov_accs)
+    si_a.append(si_accs)
 
-print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
+tr_a = np.array(tr_a)
+te_a = np.array(te_a)
+sii_a = np.array(sii_a)
+sio_a = np.array(sio_a)
+si_a = np.array(si_a)
 
-
-
-
-
-########################################
-# Split into train and test (OOV) data
-########################################
-
-train_features, train_one_hot_words, test_features, test_one_hot_words, \
-    si_in_vocab_features, si_in_vocab_one_hot_words, \
-    si_oov_features, si_oov_one_hot_words \
-    = make_train_test_siI_siOOV_data(
-        train_num_of_words,
-        train_val_word_idx, si_word_idx,
-        train_val_features, train_val_one_hot_words,
-        si_features, si_one_hot_words)
-
-########################################
-# EMBARRASSINGLY SIMPLE LEARNING
-########################################
-
-# predV = ((X.X^T + gI)^(-1)).X.Y.S^T.((S.S^T + lI)^(-1))
-# === dxa = (dxd) . dxm . mxz . zxa . (axa)
-
-optG = 1e-6
-optL = 1e-3
-
-pred_feature_to_attribute_matrix = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(
-    train_features.T, train_features) + optG * np.eye(train_features.shape[1])),
-    train_features.T), train_one_hot_words), word_to_attr_matrix),
-    np.linalg.inv(np.dot(word_to_attr_matrix.T, word_to_attr_matrix) + optL * np.eye(word_to_attr_matrix.shape[1])))
+plt.subplot(151)
+plt.imshow(tr_a, cmap='gray', clim=(0., 1.))
+plt.subplot(152)
+plt.imshow(te_a, cmap='gray', clim=(0., 1.))
+plt.subplot(153)
+plt.imshow(sii_a, cmap='gray', clim=(0., 1.))
+plt.subplot(154)
+plt.imshow(sio_a, cmap='gray', clim=(0., 1.))
+plt.subplot(155)
+plt.imshow(si_a, cmap='gray', clim=(0., 1.))
+plt.show()
 
 
 ########################################
-# ACCURACY CALCULATION
+# VAL to find optimal g and l
 ########################################
 
-train_accs = []
-test_accs = []
-si_in_vocab_accs = []
-si_oov_accs = []
-si_accs = []
+trainAcc = []
+valAcc = []
+testAcc = []
+siInAcc = []
+siOOVAcc = []
+b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
+for gExp in tqdm.tqdm(b):
+    trainAcc.append([])
+    valAcc.append([])
+    testAcc.append([])
+    siInAcc.append([])
+    siOOVAcc.append([])
+    for lExp in tqdm.tqdm(b):
+        trainAcc[-1].append([])
+        valAcc[-1].append([])
+        testAcc[-1].append([])
+        siInAcc[-1].append([])
+        siOOVAcc[-1].append([])
+        for reduced_dim in tqdm.tqdm(range(1, 100, 5)):
+            reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
+            g = math.pow(10, gExp)
+            l = math.pow(10, lExp)
+            predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
+                = learn_v_and_calc_accs(train_num_of_words_list, reduced_word_to_attr_matrix,
+                                        train_val_features, train_val_one_hot_words,
+                                        si_features, si_one_hot_words,
+                                        optG=g, optL=l)
+            trainAcc[-1][-1].append(train_accs)
+            testAcc[-1][-1].append(test_accs)
+            siInAcc[-1][-1].append(si_in_vocab_accs)
+            siOOVAcc[-1][-1].append(si_oov_accs)
+            siAcc[-1][-1].append(si_accs)
 
-y_train_preds = np.argmax(
-    np.dot(np.dot(train_features, predV), word_to_attr_matrix.T), axis=1)
-train_accs.append(np.sum(y_train_preds == np.argmax(
-    train_one_hot_words, axis=1)) / len(train_one_hot_words))
-
-y_test_preds = np.argmax(
-    np.dot(np.dot(test_features, predV), word_to_attr_matrix.T), axis=1)
-test_accs.append(np.sum(y_test_preds == np.argmax(
-    test_one_hot_words, axis=1)) / len(test_one_hot_words))
-
-y_si_in_vocab_preds = np.argmax(
-    np.dot(np.dot(si_in_vocab_features, predV), word_to_attr_matrix.T), axis=1)
-si_in_vocab_accs.append(np.sum(y_si_in_vocab_preds == np.argmax(
-    si_in_vocab_one_hot_words, axis=1)) / len(si_in_vocab_one_hot_words))
-
-y_si_oov_preds = np.argmax(
-    np.dot(np.dot(si_oov_features, predV), word_to_attr_matrix.T), axis=1)
-si_oov_accs.append(np.sum(y_si_oov_preds == np.argmax(
-    si_oov_one_hot_words, axis=1)) / len(si_oov_one_hot_words))
+np.unravel_index(np.array(testAcc).argmax(), np.array(testAcc).shape)
 
 
-# ########################################
-# # VAL to find optimal g and l
-# ########################################
-
-# train_idx = np.arange(len(train_features))
-# np.random.shuffle(train_idx)
-# tf = np.array(train_features[train_idx])
-# vf = tf[:int(0.2 * len(tf))]
-# tf = tf[int(0.2 * len(tf)):]
-# to = np.array(train_one_hot_words[train_idx])
-# vo = to[:int(0.2 * len(to))]
-# to = to[int(0.2 * len(to)):]
-
-# trainAcc = []
-# valAcc = []
-# testAcc = []
-# siInAcc = []
-# siOOVAcc = []
-# b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
-# for gExp in tqdm.tqdm(b):
-#     for lExp in b:
-#         g = math.pow(10, gExp)
-#         l = math.pow(10, lExp)
-#         predV = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(
-#             tf.T, tf) + g * np.eye(tf.shape[1])),
-#             tf.T), to), word_to_attr_matrix),
-#             np.linalg.inv(np.dot(word_to_attr_matrix.T, word_to_attr_matrix) + l * np.eye(word_to_attr_matrix.shape[1])))
-#         yTrPred = np.argmax(
-#             np.dot(np.dot(tf, predV), word_to_attr_matrix.T), axis=1)
-#         trainAcc.append(np.sum(yTrPred == np.argmax(to, axis=1)) / len(to))
-#         yVPred = np.argmax(
-#             np.dot(np.dot(vf, predV), word_to_attr_matrix.T), axis=1)
-#         valAcc.append(np.sum(yVPred == np.argmax(vo, axis=1)) / len(vo))
-#         yTestPred = np.argmax(
-#             np.dot(np.dot(test_features, predV), word_to_attr_matrix.T), axis=1)
-#         testAcc.append(np.sum(yTestPred == np.argmax(
-#             test_one_hot_words, axis=1)) / len(test_one_hot_words))
-#         ySiInPred = np.argmax(
-#             np.dot(np.dot(si_in_vocab_features, predV), word_to_attr_matrix.T), axis=1)
-#         siInAcc.append(np.sum(ySiInPred == np.argmax(
-#             si_in_vocab_one_hot_words, axis=1)) / len(si_in_vocab_one_hot_words))
-#         ySiOOVPred = np.argmax(
-#             np.dot(np.dot(si_oov_features, predV), word_to_attr_matrix.T), axis=1)
-#         siOOVAcc.append(np.sum(ySiOOVPred == np.argmax(
-#             si_oov_one_hot_words, axis=1)) / len(si_oov_one_hot_words))
