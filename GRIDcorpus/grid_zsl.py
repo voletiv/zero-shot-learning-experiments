@@ -67,11 +67,10 @@ train_val_dirs, train_val_word_numbers, train_val_word_idx, \
 
 train_val_features, train_val_one_hot_words = make_features_and_one_hot_words(
     train_val_dirs, train_val_word_numbers, train_val_word_idx,
-    LSTMLipreaderEncoder, word_to_attr_matrix)
+    LSTMLipreaderEncoder)
 
 si_features, si_one_hot_words = make_features_and_one_hot_words(
-    si_dirs, si_word_numbers, si_word_idx,
-    LSTMLipreaderEncoder, word_to_attr_matrix)
+    si_dirs, si_word_numbers, si_word_idx, LSTMLipreaderEncoder)
 
 ########################################
 # Split into train and test (OOV) data
@@ -80,7 +79,7 @@ si_features, si_one_hot_words = make_features_and_one_hot_words(
 ########################################
 
 
-def find_accs(train_num_of_words_list):
+def find_accs(train_num_of_words_list, word_to_attr_matrix):
     train_accs = []
     test_accs = []
     si_in_vocab_accs = []
@@ -135,6 +134,20 @@ train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
     train_num_of_words_list)
 
 print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
+
+
+# Reduce dimensions of word_to_attr_matrix
+
+train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
+reduced_word_to_attr_matrix = word_to_attr_matrix[:, :100]
+
+train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
+    train_num_of_words_list, reduced_word_to_attr_matrix)
+
+print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
+
+
+
 
 
 ########################################

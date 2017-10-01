@@ -78,8 +78,7 @@ def make_train_test_siI_siOOV_data(train_num_of_words,
 def make_features_and_one_hot_words(dirs,
                                     word_numbers,
                                     word_idx,
-                                    LSTMLipreaderEncoder,
-                                    word_to_attr_matrix):
+                                    LSTMLipreaderEncoder):
     features = np.zeros((len(dirs), LIPREADER_ENCODED_DIM))
     one_hot_words = np.zeros((len(dirs), GRID_VOCAB_SIZE))
     # For each data point
