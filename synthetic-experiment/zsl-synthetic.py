@@ -324,17 +324,27 @@ def acc_with_fullS(z=100, t=100, a=100, d=100):
     predTestClass = np.argmax(np.dot(np.dot(TX.T, optV), S), axis=1)
     testClass = np.argmax(TY, axis=1)
     testAcc = np.sum(testClass == predTestClass)/len(testClass)
-    print(trainAcc, valAcc, testAcc)
+    # print(trainAcc, valAcc, testAcc)
     return trainAcc, valAcc, testAcc
 
 
 acc = []
 vAcc = []
 tAcc = []
-for d in tqdm.tqdm(range(1, 500, 10)):
-    for a in range(1, 200, 10):
+for d in tqdm.tqdm(range(1, 160, 20)):
+    for a in range(1, 160, 20):
         trainAcc, valAcc, testAcc = acc_with_fullS(z=100, t=100, a=a, d=d)
         acc.append(trainAcc)
         vAcc.append(valAcc)
         tAcc.append(testAcc)
 
+acc = np.array(acc).reshape((8, 8))
+vAcc = np.array(vAcc).reshape((8, 8))
+tAcc = np.array(tAcc).reshape((8, 8))
+plt.subplot(131)
+plt.imshow(acc, cmap='gray', clim=(0., 1.))
+plt.subplot(132)
+plt.imshow(vAcc, cmap='gray', clim=(0., 1.))
+plt.subplot(133)
+plt.imshow(tAcc, cmap='gray', clim=(0., 1.))
+plt.show()
