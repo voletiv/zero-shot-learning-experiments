@@ -15,6 +15,7 @@ from LSTM_lipreader_function import *
 
 
 def make_train_test_siI_siOOV_data(train_num_of_words,
+                                   train_val_word_idx, si_word_idx,
                                    train_val_features, train_val_one_hot_words,
                                    si_features, si_one_hot_words):
 
@@ -34,19 +35,19 @@ def make_train_test_siI_siOOV_data(train_num_of_words,
 
     # Choose those rows in data that contain training words
     train_data_idx = np.array([i for i in range(
-        len(train_val_dirs)) if train_val_word_idx[i] in training_words_idx])
+        len(train_val_word_idx)) if train_val_word_idx[i] in training_words_idx])
 
     # Make the rest of the rows as testing data
     test_data_idx = np.delete(
-        np.arange(len(train_val_dirs)), train_data_idx)
+        np.arange(len(train_val_word_idx)), train_data_idx)
 
     # Choose those rows in data that contain training words
     si_in_vocab_data_idx = np.array(
-        [i for i in range(len(si_dirs)) if si_word_idx[i] in training_words_idx])
+        [i for i in range(len(si_word_idx)) if si_word_idx[i] in training_words_idx])
 
     # Make the rest of the rows as testing data
     si_oov_data_idx = np.delete(
-        np.arange(len(si_dirs)), si_in_vocab_data_idx)
+        np.arange(len(si_word_idx)), si_in_vocab_data_idx)
 
     # TRAIN DATA
     train_features = train_val_features[train_data_idx]
