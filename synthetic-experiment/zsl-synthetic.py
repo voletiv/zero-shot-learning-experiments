@@ -255,18 +255,6 @@ def zsl_synth_plot(z_=100, t_=100, a_=100, d_=10):
 # Training with full S
 #######################################
 
-# Number of training classes
-z = 100
-
-# Number of test classes
-t = 200
-
-# Number of atributes
-a = 100
-
-# Input dim
-d = 10
-
 def acc_with_fullS(z=100, t=100, a=100, d=100):
     # S === axz
     S = np.random.binomial(1, .5, size=(a, z+t))
@@ -327,20 +315,37 @@ def acc_with_fullS(z=100, t=100, a=100, d=100):
     # print(trainAcc, valAcc, testAcc)
     return trainAcc, valAcc, testAcc
 
+# Number of training classes
+z = 10
+
+# Number of test classes
+t = 40
+
+# Number of atributes
+a = 300
+
+# Input dim
+d = 64
 
 acc = []
 vAcc = []
 tAcc = []
-for d in tqdm.tqdm(range(1, 160, 20)):
-    for a in range(1, 160, 20):
-        trainAcc, valAcc, testAcc = acc_with_fullS(z=100, t=100, a=a, d=d)
+# d_s = np.arange(1, 300, 20)
+# d_s = [64]
+a_s = np.arange(1, 30)
+# for d in tqdm.tqdm(d_s):
+z_s = np.arange(5, 50, 5)
+for a in tqdm.tqdm(a_s):
+    for z in z_s:
+        t = 50 - z
+        trainAcc, valAcc, testAcc = acc_with_fullS(z=z, t=t, a=a, d=d)
         acc.append(trainAcc)
         vAcc.append(valAcc)
         tAcc.append(testAcc)
 
-acc = np.array(acc).reshape((8, 8))
-vAcc = np.array(vAcc).reshape((8, 8))
-tAcc = np.array(tAcc).reshape((8, 8))
+acc = np.array(acc).reshape((len(a_s), len(z_s)))
+vAcc = np.array(vAcc).reshape((len(a_s), len(z_s)))
+tAcc = np.array(tAcc).reshape((len(a_s), len(z_s)))
 plt.subplot(131)
 plt.imshow(acc, cmap='gray', clim=(0., 1.))
 plt.subplot(132)
