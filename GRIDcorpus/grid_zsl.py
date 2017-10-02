@@ -76,34 +76,64 @@ optG = 1e1
 optL = 1e-2
 
 pred_Vs = []
-inv_accs = []
+iv_accs = []
 oov_accs = []
-si_in_vocab_accs = []
+si_iv_accs = []
 si_oov_accs = []
 si_accs = []
 
 # Number of words in the training list
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
-# For each value of number of training classes
-for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
-    # Pred V and calc accs
-    pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc \
-        = learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
-                                       train_val_features, train_val_one_hot_words,
-                                       si_features, si_one_hot_words,
-                                       optG, optL, GRID_VOCAB_SIZE)
-    # Save
-    pred_Vs.append(pred_V)
-    inv_accs.append(inv_acc)
-    oov_accs.append(oov_acc)
-    si_in_vocab_accs.append(si_in_vocab_acc)
-    si_oov_accs.append(si_oov_acc)
-    si_accs.append(si_acc)
+number_of_iterations = 100
+for iter in tqdm.tqdm(range(number_of_iterations)):
+    iv_accs.append([])
+    oov_accs.append([])
+    si_iv_accs.append([])
+    si_oov_accs.append([])
+    si_accs.append([])
+    # For each value of number of training classes
+    for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
+        # Pred V and calc accs
+        pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc \
+            = learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
+                                           train_val_features, train_val_one_hot_words,
+                                           si_features, si_one_hot_words,
+                                           optG, optL, fix_seed=False)
+        # Save
+        iv_accs[-1].append(iv_acc)
+        oov_accs[-1].append(oov_acc)
+        si_iv_accs[-1].append(si_iv_acc)
+        si_oov_accs[-1].append(si_oov_acc)
+        si_accs[-1].append(si_acc)
 
-for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
-    print(inv_acc, oov_acc, si_in_vocab_acc, si_oov_acc, si_acc)
+# mean and std
+iv_accs_mean = np.mean(iv_accs, axis=0)
+oov_accs_mean = np.mean(oov_accs, axis=0)
+si_iv_accs_mean = np.mean(si_iv_accs, axis=0)
+si_oov_accs_mean = np.mean(si_oov_accs, axis=0)
+si_accs_mean = np.mean(si_accs, axis=0)
 
+iv_accs_std = np.std(iv_accs, axis=0)
+oov_accs_std = np.std(oov_accs, axis=0)
+si_iv_accs_std = np.std(si_iv_accs, axis=0)
+si_oov_accs_std = np.std(si_oov_accs, axis=0)
+si_accs_std = np.std(si_accs, axis=0)
+
+# Print
+for i in range(len(train_num_of_words_list)):
+    print(iv_accs[i], oov_accs[i], si_iv_accs[i], si_oov_accs[i], si_accs[i])
+
+# Plot
+plt.plot(train_num_of_words_list, oov_accs, label='oov - speaker-dependent')
+plt.plot(train_num_of_words_list, si_iv_accs, label='iv - speaker-independent')
+plt.plot(train_num_of_words_list, si_oov_accs, label='oov - speaker-independent')
+plt.plot(train_num_of_words_list, si_accs, label='full - speaker-independent')
+plt.legend()
+plt.xlabel("Number of words in the training vocabulary, out of 50")
+plt.ylabel("Accuracy")
+plt.title("ESZSL - GRIDcorpus")
+plt.show()
 
 # ########################################
 # # VAL to find optimal g and l
@@ -116,8 +146,8 @@ for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
 # # (train_num_of_words), since diff between acc at optimal value for each value
 # # of z and this value is not significant => optG = 10, optL = .01
 
-# inv_train_accs = []
-# inv_val_accs = []
+# iv_train_accs = []
+# iv_val_accs = []
 
 # train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 # word_embedding_dimensions_list = np.arange(1, 300, 20)
@@ -125,14 +155,14 @@ for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
 # b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
 # for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
-#     inv_train_accs.append([])
-#     inv_val_accs.append([])
+#     iv_train_accs.append([])
+#     iv_val_accs.append([])
 #     for gExp in tqdm.tqdm(b):
-#         inv_train_accs[-1].append([])
-#         inv_val_accs[-1].append([])
+#         iv_train_accs[-1].append([])
+#         iv_val_accs[-1].append([])
 #         for lExp in tqdm.tqdm(b):
-#             inv_train_accs[-1][-1].append([])
-#             inv_val_accs[-1][-1].append([])
+#             iv_train_accs[-1][-1].append([])
+#             iv_val_accs[-1][-1].append([])
 #             g = math.pow(10, gExp)
 #             l = math.pow(10, lExp)
 #             # Choose training words
@@ -176,21 +206,21 @@ for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
 #                 # Train Acc
 #                 y_train_preds = np.argmax(np.dot(
 #                     np.dot(train_features, pred_V), in_vocab_word_to_attr_matrix.T), axis=1)
-#                 inv_train_accs[-1][-1][-1].append(np.sum(y_train_preds == np.argmax(
+#                 iv_train_accs[-1][-1][-1].append(np.sum(y_train_preds == np.argmax(
 #                     train_one_hot_words, axis=1)) / len(train_one_hot_words))
 #                 # Val Acc
 #                 y_val_preds = np.argmax(np.dot(
 #                     np.dot(val_features, pred_V), in_vocab_word_to_attr_matrix.T), axis=1)
-#                 inv_val_accs[-1][-1][-1].append(np.sum(y_val_preds == np.argmax(
+#                 iv_val_accs[-1][-1][-1].append(np.sum(y_val_preds == np.argmax(
 #                     val_one_hot_words, axis=1)) / len(val_one_hot_words))
 
 # # Plots
 
 # # For each z
 # for i in range(len(train_num_of_words_list)):
-#     opt_dims = np.unravel_index(np.array(inv_val_accs)[
-#                                 i, :, :, -1].argmax(), np.array(inv_val_accs)[i, :, :, -1].shape)
-#     my_image = np.reshape(np.array(inv_val_accs)[
+#     opt_dims = np.unravel_index(np.array(iv_val_accs)[
+#                                 i, :, :, -1].argmax(), np.array(iv_val_accs)[i, :, :, -1].shape)
+#     my_image = np.reshape(np.array(iv_val_accs)[
 #                           i, :, :, -1], (len(b), len(b)))
 #     plt.subplot(2, 5, i + 1)
 #     plt.imshow(my_image, cmap='gray', clim=(0.5, 1.))
