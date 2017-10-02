@@ -29,9 +29,21 @@ word_to_attr_matrix_word2vec = np.load(os.path.join(GRID_DIR,
 word_to_attr_matrix_fasttext = np.load(os.path.join(GRID_DIR,
                                                     'grid_embedding_matrix_fasttext.npy'))
 
-# WORD2VEC or FASTTEXT
-word_to_attr_matrix = word_to_attr_matrix_word2vec
-# word_to_attr_matrix = word_to_attr_matrix_fasttext
+# WORD2VEC or FASTTEXT or GLOVE
+word_embedding = 'word2vec'
+word_embedding = 'fasttext'
+if word_embedding == 'word2vec':
+    word_to_attr_matrix = word_to_attr_matrix_word2vec
+elif word_embedding == 'fasttext':
+    word_to_attr_matrix = word_to_attr_matrix_fasttext
+elif word_embedding == 'GloVe':
+    word_to_attr_matrix = word_to_attr_matrix_GloVe
+
+# To save
+grid_embedding_accs = {}
+grid_embedding_accs["word2vec"] = {}
+grid_embedding_accs["fasttext"] = {}
+grid_embedding_accs["GloVe"] = {}
 
 ########################################
 # Load LipReader
@@ -75,7 +87,6 @@ si_one_hot_words = all_vars["si_one_hot_words"]
 optG = 1e1
 optL = 1e-2
 
-pred_Vs = []
 iv_accs = []
 oov_accs = []
 si_iv_accs = []
@@ -120,26 +131,34 @@ si_iv_accs_std = np.std(si_iv_accs, axis=0)
 si_oov_accs_std = np.std(si_oov_accs, axis=0)
 si_accs_std = np.std(si_accs, axis=0)
 
+# Save
+grid_embedding_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
+grid_embedding_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
+grid_embedding_accs[word_embedding]["si_iv_accs_mean"] = si_iv_accs_mean
+grid_embedding_accs[word_embedding]["si_oov_accs_mean"] = si_oov_accs_mean
+grid_embedding_accs[word_embedding]["si_accs_mean"] = si_accs_mean
+
 # Print
 for i in range(len(train_num_of_words_list)):
     print(iv_accs_mean[i], oov_accs_mean[i], si_iv_accs_mean[i],
           si_oov_accs_mean[i], si_accs_mean[i])
 
 # Plot
-plt.plot(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std,
-         label='iv - speaker-dependent')
-plt.plot(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std,
-         label='oov - speaker-dependent')
-plt.plot(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std,
-         label='iv - speaker-INdependent')
-plt.plot(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std,
-         label='oov - speaker-INdependent')
-plt.plot(train_num_of_words_list, si_accs_mean, yerr=si_accs_std,
-         label='[iv+oov] - speaker-INdependent')
-plt.legend()
+plt.errorbar(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std,
+         capsize=3, label='iv - speaker-dependent')
+plt.errorbar(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std,
+         capsize=3, label='oov - speaker-dependent')
+plt.errorbar(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std,
+         capsize=3, label='iv - speaker-INdependent')
+plt.errorbar(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std,
+         capsize=3, label='oov - speaker-INdependent')
+plt.errorbar(train_num_of_words_list, si_accs_mean, yerr=si_accs_std,
+         capsize=3, label='[iv+oov] - speaker-INdependent')
+plt.legend(loc='upper right')
+plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
-plt.title("ESZSL - GRIDcorpus")
+plt.title("ESZSL - GRIDcorpus - " + word_embedding)
 plt.show()
 
 # ########################################
