@@ -6,12 +6,16 @@ import sys
 #############################################################
 
 # LRW directory
-LRW_DIR = os.path.dirname(os.path.realpath(__file__))
+if 'LRW_DIR' not in dir():
+    LRW_DIR = os.path.dirname(os.path.realpath(__file__))
+
 if LRW_DIR not in sys.path:
     sys.path.append(LRW_DIR)
 
 # Root directory with common functions
-ROOT_DIR = os.path.normpath(os.path.join(LRW_DIR, '..'))
+if 'ROOT_DIR' not in dir():
+    ROOT_DIR = os.path.normpath(os.path.join(LRW_DIR, '..'))
+
 if ROOT_DIR not in sys.path:
     sys.path.append(ROOT_DIR)
 
