@@ -125,10 +125,11 @@ for i in range(len(train_num_of_words_list)):
     print(iv_accs[i], oov_accs[i], si_iv_accs[i], si_oov_accs[i], si_accs[i])
 
 # Plot
-plt.plot(train_num_of_words_list, oov_accs, label='oov - speaker-dependent')
-plt.plot(train_num_of_words_list, si_iv_accs, label='iv - speaker-independent')
-plt.plot(train_num_of_words_list, si_oov_accs, label='oov - speaker-independent')
-plt.plot(train_num_of_words_list, si_accs, label='full - speaker-independent')
+plt.plot(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std, label='iv - speaker-dependent')
+plt.plot(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std, label='oov - speaker-dependent')
+plt.plot(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std, label='iv - speaker-independent')
+plt.plot(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std, label='oov - speaker-independent')
+plt.plot(train_num_of_words_list, si_accs_mean, yerr=si_accs_std, label='full - speaker-independent')
 plt.legend()
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
