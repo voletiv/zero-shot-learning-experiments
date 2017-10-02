@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 from grid_params import *
 from grid_functions import *
@@ -38,39 +39,24 @@ word_to_attr_matrix = word_to_attr_matrix_word2vec
 
 LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 
-########################################
-# Vars
-########################################
-
-# Number of training classes (words)
-z_vals = np.array([10, 20, 30, 40])
-
-# Number of test classes (OOV words)
-t_vals = GRID_VOCAB_SIZE - z_vals
-
-# Number of atributes === word2vec dim
-attr_dim = word_to_attr_matrix.shape[1]
-
-train_num_of_words = z_vals[0]
-test_num_of_words = t_vals[0]
-
 # ########################################
 # # Get FULL Data
 # ########################################
 
 # train_val_dirs, train_val_word_numbers, train_val_word_idx, \
 #     si_dirs, si_word_numbers, si_word_idx \
-#     = get_train_val_si_dirs_wordnumbers_wordidx()
+#     = get_GRIDcorpus_train_val_si_dirs_wordnumbers_wordidx()
 
 # ########################################
 # # Make FULL features and one_hot_words
 # ########################################
 
-# train_val_features, train_val_one_hot_words = make_features_and_one_hot_words(
-#     train_val_dirs, train_val_word_numbers, train_val_word_idx,
-#     LSTMLipreaderEncoder)
+# train_val_features, train_val_one_hot_words \
+#     = make_GRIDcorpus_features_and_one_hot_words(
+#         train_val_dirs, train_val_word_numbers, train_val_word_idx,
+#         LSTMLipreaderEncoder)
 
-# si_features, si_one_hot_words = make_features_and_one_hot_words(
+# si_features, si_one_hot_words = make_GRIDcorpus_features_and_one_hot_words(
 #     si_dirs, si_word_numbers, si_word_idx, LSTMLipreaderEncoder)
 
 all_vars = np.load(os.path.join(
@@ -89,15 +75,34 @@ si_one_hot_words = all_vars["si_one_hot_words"]
 optG = 1e1
 optL = 1e-2
 
+pred_Vs = []
+inv_accs = []
+oov_accs = []
+si_in_vocab_accs = []
+si_oov_accs = []
+si_accs = []
+
+# Number of words in the training list
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
-predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
-    = learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
-                            train_val_features, train_val_one_hot_words,
-                            si_features, si_one_hot_words,
-                            optG, optL)
+# For each value of number of training classes
+for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
+    # Pred V and calc accs
+    pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc \
+        = learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
+                                       train_val_features, train_val_one_hot_words,
+                                       si_features, si_one_hot_words,
+                                       optG, optL, GRID_VOCAB_SIZE)
+    # Save
+    pred_Vs.append(pred_V)
+    inv_accs.append(inv_acc)
+    oov_accs.append(oov_acc)
+    si_in_vocab_accs.append(si_in_vocab_acc)
+    si_oov_accs.append(si_oov_acc)
+    si_accs.append(si_acc)
 
-print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
+for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
+    print(inv_acc, oov_acc, si_in_vocab_acc, si_oov_acc, si_acc)
 
 
 # ########################################
