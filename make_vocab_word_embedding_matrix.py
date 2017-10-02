@@ -29,7 +29,11 @@ WORD2VEC_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/Word2V
 # 'wiki.en.vec' is saved
 FASTTEXT_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/FastText'
 
-# word2vec, fasttext dim
+# Directory where the GloVe file
+# 'glove.6B.300d.txt' is saved
+GLOVE_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/GloVe'
+
+# word2vec, fasttext, GloVe dim
 EMBEDDING_DIM = 300
 
 ########################################
@@ -42,65 +46,106 @@ EMBEDDING_DIM = 300
 # Vocabularies loaded by GRIDcorpus.grid_params and LRW.lrw_params
 
 ########################################
+# DEFINE WORD_EMBEDDING, DATASET
+########################################
+
+# word_embedding = 'word2vec'
+# word_embedding = 'fasttext'
+wordEmbedding = 'glove'
+
+dataset = 'grid'
+# dataset = 'lrw'
+
+########################################
 # Load word2vec, fasttext binary files
 ########################################
 
-# word2vec
-word2vecBinFile = os.path.join(WORD2VEC_BIN_SAVED_DIR,
-    'GoogleNews-vectors-negative300.bin')
-
-word2vec = KeyedVectors.load_word2vec_format(word2vecBinFile, binary=True)
-
-# fasttext
-fasttextBinFile = os.path.join(FASTTEXT_BIN_SAVED_DIR,
-    'wiki.en.vec')
-
-fasttext = KeyedVectors.load_word2vec_format(fasttextBinFile)
+if wordEmbedding == 'word2vec':
+    # word2vec
+    word2vecBinFile = os.path.join(WORD2VEC_BIN_SAVED_DIR,
+        'GoogleNews-vectors-negative300.bin')
+    word2vec = KeyedVectors.load_word2vec_format(word2vecBinFile, binary=True)
+elif wordEmbedding == 'fastText':
+    # fasttext
+    fasttextBinFile = os.path.join(FASTTEXT_BIN_SAVED_DIR,
+        'wiki.en.vec')
+    fasttext = KeyedVectors.load_word2vec_format(fasttextBinFile)
+elif wordEmbedding == 'glove':
+    # GloVe
+    gloveBinFile = os.path.join(GLOVE_BIN_SAVED_DIR,
+        'glove.6B.300d.txt')
+    def load_glove_model(gloveFile):
+        print("Loading Glove Model")
+        model = {}
+        nOfLines = i+1
+        with open(gloveFile, 'r') as f:
+            for line in tqdm.tqdm(f, total=400000):
+                splitLine = line.split()
+                word = splitLine[0]
+                embedding = np.array([float(val) for val in splitLine[1:]])
+                model[word] = embedding
+        print("Done.", len(model)," words loaded!")
+        return model
+    glove = load_glove_model(gloveBinFile)
 
 ########################################
-# Make word2vec embedding matrices
+# Make embedding matrices
 ########################################
 
-# LRW
-lrw_embedding_matrix_word2vec = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
+if wordEmbedding == 'word2vec':
+    if dataset == 'lrw':
+        # LRW
+        lrw_embedding_matrix_word2vec = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(LRW_VOCAB):
+            lrw_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
+    elif dataset == 'grid':
+        # GRIDcorpus
+        grid_embedding_matrix_word2vec = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(GRID_VOCAB):
+            grid_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
+elif wordEmbedding == 'fasttext':
+    if dataset == 'lrw':
+        # LRW
+        lrw_embedding_matrix_fasttext = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(LRW_VOCAB):
+            lrw_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
+    elif dataset == 'grid':
+        # GRIDcorpus
+        grid_embedding_matrix_fasttext = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(GRID_VOCAB):
+            grid_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
+elif wordEmbedding == 'glove':
+    if dataset == 'lrw':
+        # LRW
+        lrw_embedding_matrix_glove = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(LRW_VOCAB):
+            lrw_embedding_matrix_glove[i] = glove[word]
+    elif dataset == 'grid':
+        # GRIDcorpus
+        grid_embedding_matrix_glove = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(GRID_VOCAB):
+            grid_embedding_matrix_glove[i] = glove[word]
 
-for i, word in enumerate(LRW_VOCAB):
-    lrw_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
-
-# GRIDcorpus
-grid_embedding_matrix_word2vec = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
-
-for i, word in enumerate(GRID_VOCAB):
-    grid_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
-
-########################################
-# Make fasttext embedding matrices
-########################################
-
-# LRW
-lrw_embedding_matrix_fasttext = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
-
-for i, word in enumerate(LRW_VOCAB):
-    lrw_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
-
-# GRIDcorpus
-grid_embedding_matrix_fasttext = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
-
-for i, word in enumerate(GRID_VOCAB):
-    grid_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
 
 ########################################
 # Save embedding matrices
 ########################################
 
-np.save("lrw_embedding_matrix_word2vec", lrw_embedding_matrix_word2vec)
-
-np.save("grid_embedding_matrix_word2vec", grid_embedding_matrix_word2vec)
-
-np.save("lrw_embedding_matrix_fasttext", lrw_embedding_matrix_fasttext)
-
-np.save("grid_embedding_matrix_fasttext", grid_embedding_matrix_fasttext)
-
+if wordEmbedding == 'word2vec':
+    if dataset == 'lrw':
+        np.save("lrw_embedding_matrix_word2vec", lrw_embedding_matrix_word2vec)
+    elif dataset == 'grid':
+        np.save("grid_embedding_matrix_word2vec", grid_embedding_matrix_word2vec)
+elif wordEmbedding == 'fasttext':
+    if dataset == 'lrw':
+        np.save("lrw_embedding_matrix_fasttext", lrw_embedding_matrix_fasttext)
+    elif dataset == 'grid':
+        np.save("grid_embedding_matrix_fasttext", grid_embedding_matrix_fasttext)
+elif wordEmbedding == 'glove':
+    if dataset == 'lrw':
+        np.save("lrw_embedding_matrix_glove", lrw_embedding_matrix_glove)
+    elif dataset == 'grid':
+        np.save("grid_embedding_matrix_glove", grid_embedding_matrix_glove)
 
 # ########################################
 # # Check for words being in word2vec
