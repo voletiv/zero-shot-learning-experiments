@@ -15,6 +15,25 @@ from grid_functions import *
 # predV = ((X.X^T + gI)^(-1)).X.Y.S^T.((S.S^T + lI)^(-1))
 # === dxa = (dxd) . dxm . mxz . zxa . (axa)
 
+
+########################################
+# TO SAVE
+########################################
+
+grid_embedding_accs = {}
+grid_embedding_accs["word2vec"] = {}
+grid_embedding_accs["fasttext"] = {}
+grid_embedding_accs["GloVe"] = {}
+
+########################################
+# Set embedding type
+########################################
+
+# WORD2VEC or FASTTEXT or GLOVE
+# word_embedding = 'word2vec'
+word_embedding = 'fasttext'
+# word_embedding = 'glove'
+
 ########################################
 # Read embedding matrices
 ########################################
@@ -29,21 +48,16 @@ word_to_attr_matrix_word2vec = np.load(os.path.join(GRID_DIR,
 word_to_attr_matrix_fasttext = np.load(os.path.join(GRID_DIR,
                                                     'grid_embedding_matrix_fasttext.npy'))
 
-# WORD2VEC or FASTTEXT or GLOVE
-word_embedding = 'word2vec'
-word_embedding = 'fasttext'
+# glove
+word_to_attr_matrix_glove = np.load(os.path.join(GRID_DIR,
+                                                 'grid_embedding_matrix_glove.npy'))
+
 if word_embedding == 'word2vec':
     word_to_attr_matrix = word_to_attr_matrix_word2vec
 elif word_embedding == 'fasttext':
     word_to_attr_matrix = word_to_attr_matrix_fasttext
-elif word_embedding == 'GloVe':
-    word_to_attr_matrix = word_to_attr_matrix_GloVe
-
-# To save
-grid_embedding_accs = {}
-grid_embedding_accs["word2vec"] = {}
-grid_embedding_accs["fasttext"] = {}
-grid_embedding_accs["GloVe"] = {}
+elif word_embedding == 'glove':
+    word_to_attr_matrix = word_to_attr_matrix_glove
 
 ########################################
 # Load LipReader
@@ -131,13 +145,6 @@ si_iv_accs_std = np.std(si_iv_accs, axis=0)
 si_oov_accs_std = np.std(si_oov_accs, axis=0)
 si_accs_std = np.std(si_accs, axis=0)
 
-# Save
-grid_embedding_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
-grid_embedding_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
-grid_embedding_accs[word_embedding]["si_iv_accs_mean"] = si_iv_accs_mean
-grid_embedding_accs[word_embedding]["si_oov_accs_mean"] = si_oov_accs_mean
-grid_embedding_accs[word_embedding]["si_accs_mean"] = si_accs_mean
-
 # Print
 for i in range(len(train_num_of_words_list)):
     print(iv_accs_mean[i], oov_accs_mean[i], si_iv_accs_mean[i],
@@ -145,21 +152,85 @@ for i in range(len(train_num_of_words_list)):
 
 # Plot
 plt.errorbar(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std,
-         capsize=3, label='iv - speaker-dependent')
+             capsize=3, label='iv - speaker-dependent')
 plt.errorbar(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std,
-         capsize=3, label='oov - speaker-dependent')
+             capsize=3, label='oov - speaker-dependent')
 plt.errorbar(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std,
-         capsize=3, label='iv - speaker-INdependent')
+             capsize=3, label='iv - speaker-INdependent')
 plt.errorbar(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std,
-         capsize=3, label='oov - speaker-INdependent')
+             capsize=3, label='oov - speaker-INdependent')
 plt.errorbar(train_num_of_words_list, si_accs_mean, yerr=si_accs_std,
-         capsize=3, label='[iv+oov] - speaker-INdependent')
+             capsize=3, label='[iv+oov] - speaker-INdependent')
 plt.legend(loc='upper right')
 plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
 plt.title("ESZSL - GRIDcorpus - " + word_embedding)
 plt.show()
+
+########################################
+# Save
+########################################
+
+grid_embedding_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
+grid_embedding_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
+grid_embedding_accs[word_embedding]["si_iv_accs_mean"] = si_iv_accs_mean
+grid_embedding_accs[word_embedding]["si_oov_accs_mean"] = si_oov_accs_mean
+grid_embedding_accs[word_embedding]["si_accs_mean"] = si_accs_mean
+
+grid_embedding_accs[word_embedding]["iv_accs_std"] = iv_accs_std
+grid_embedding_accs[word_embedding]["oov_accs_std"] = oov_accs_std
+grid_embedding_accs[word_embedding]["si_iv_accs_std"] = si_iv_accs_std
+grid_embedding_accs[word_embedding]["si_oov_accs_std"] = si_oov_accs_std
+grid_embedding_accs[word_embedding]["si_accs_std"] = si_accs_std
+
+np.save("grid_embedding_accs", grid_embedding_accs)
+
+########################################
+# Mini plot
+########################################
+
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['oov_accs_mean'],
+             yerr=grid_embedding_accs['word2vec']['oov_accs_std'], label='word2vec',
+             linestyle='--', fmt='o', capsize=3)
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['oov_accs_mean'],
+             yerr=grid_embedding_accs['fasttext']['oov_accs_std'], label='fasttext',
+             linestyle='--', fmt='o', capsize=3)
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['oov_accs_mean'],
+             yerr=grid_embedding_accs['glove']['oov_accs_std'], label='glove',
+             linestyle='--', fmt='o', capsize=3)
+plt.legend(fontsize=12)
+plt.ylim([0., 1.])
+plt.xlabel("Number of words in the training vocabulary, out of 50")
+plt.ylabel("Accuracy")
+plt.title("OOV accuracies on GRIDcorpus")
+plt.show()
+
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['si_iv_accs_mean'],
+             yerr=grid_embedding_accs['word2vec']['si_iv_accs_std'], label='iv-word2vec',
+             linestyle=':', fmt='o', capsize=3, c='C0')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['si_iv_accs_mean'],
+             yerr=grid_embedding_accs['fasttext']['si_iv_accs_std'], label='iv-fasttext',
+             linestyle=':', fmt='o', capsize=3, c='C1')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['si_iv_accs_mean'],
+             yerr=grid_embedding_accs['glove']['si_iv_accs_std'], label='iv-glove',
+             linestyle=':', fmt='o', capsize=3, c='C2')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['si_oov_accs_mean'],
+             yerr=grid_embedding_accs['word2vec']['si_oov_accs_std'], label='oov-word2vec',
+             linestyle='-', fmt='o', capsize=3, c='C0')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['si_oov_accs_mean'],
+             yerr=grid_embedding_accs['fasttext']['si_oov_accs_std'], label='oov-fasttext',
+             linestyle='-', fmt='o', capsize=3, c='C1')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['si_oov_accs_mean'],
+             yerr=grid_embedding_accs['glove']['si_oov_accs_std'], label='oov-glove',
+             linestyle='-', fmt='o', capsize=3, c='C2')
+plt.legend(fontsize=12)
+plt.ylim([0., 1.])
+plt.xlabel("Number of words in the training vocabulary, out of 50")
+plt.ylabel("Accuracy")
+plt.title("Speaker-Independent accuracies on GRIDcorpus")
+plt.show()
+
 
 # ########################################
 # # VAL to find optimal g and l
