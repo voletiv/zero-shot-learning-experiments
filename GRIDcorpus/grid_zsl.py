@@ -122,14 +122,20 @@ si_accs_std = np.std(si_accs, axis=0)
 
 # Print
 for i in range(len(train_num_of_words_list)):
-    print(iv_accs[i], oov_accs[i], si_iv_accs[i], si_oov_accs[i], si_accs[i])
+    print(iv_accs_mean[i], oov_accs_mean[i], si_iv_accs_mean[i],
+          si_oov_accs_mean[i], si_accs_mean[i])
 
 # Plot
-plt.plot(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std, label='iv - speaker-dependent')
-plt.plot(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std, label='oov - speaker-dependent')
-plt.plot(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std, label='iv - speaker-independent')
-plt.plot(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std, label='oov - speaker-independent')
-plt.plot(train_num_of_words_list, si_accs_mean, yerr=si_accs_std, label='full - speaker-independent')
+plt.plot(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std,
+         label='iv - speaker-dependent')
+plt.plot(train_num_of_words_list, oov_accs_mean, yerr=oov_accs_std,
+         label='oov - speaker-dependent')
+plt.plot(train_num_of_words_list, si_iv_accs_mean, yerr=si_iv_accs_std,
+         label='iv - speaker-INdependent')
+plt.plot(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std,
+         label='oov - speaker-INdependent')
+plt.plot(train_num_of_words_list, si_accs_mean, yerr=si_accs_std,
+         label='[iv+oov] - speaker-INdependent')
 plt.legend()
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
