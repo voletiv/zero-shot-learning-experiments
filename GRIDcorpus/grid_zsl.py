@@ -1,5 +1,6 @@
 # PERFORM ZERO SHOT LEARNING ON GRIDCORPUS
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from grid_params import *
@@ -85,99 +86,112 @@ si_one_hot_words = all_vars["si_one_hot_words"]
 # Calc Acc
 ########################################
 
-optG = 1e-4
-optL = 1e-3
+optG = 1e1
+optL = 1e-2
 
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
 predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
     = learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
                             train_val_features, train_val_one_hot_words,
-                            si_features, si_one_hot_words)
+                            si_features, si_one_hot_words,
+                            optG, optL)
 
 print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
 
 
-# Reduce dimensions of word_to_attr_matrix
+# ########################################
+# # VAL to find optimal g and l
+# ########################################
 
-train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
+# # CONCLUSIONS
+# # 1. Let's keep dimension of word embedding 300 (max), because accs are
+# # saturating by that, so no harm
+# # 2. Let's choose gExp and lExp as 7 and 4 for all values of z
+# # (train_num_of_words), since diff between acc at optimal value for each value
+# # of z and this value is not significant => optG = 10, optL = .01
 
-tr_a = []
-te_a = []
-sii_a = []
-sio_a = []
-si_a = []
-for reduced_dim in tqdm.tqdm(range(1, 30)):
-    reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
-    predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
-        = learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
-                                train_val_features, train_val_one_hot_words,
-                                si_features, si_one_hot_words)
-    print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
-    tr_a.append(train_accs)
-    te_a.append(test_accs)
-    sii_a.append(si_in_vocab_accs)
-    sio_a.append(si_oov_accs)
-    si_a.append(si_accs)
+# inv_train_accs = []
+# inv_val_accs = []
 
-tr_a = np.array(tr_a)
-te_a = np.array(te_a)
-sii_a = np.array(sii_a)
-sio_a = np.array(sio_a)
-si_a = np.array(si_a)
+# train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
+# word_embedding_dimensions_list = np.arange(1, 300, 20)
 
-plt.subplot(151)
-plt.imshow(tr_a, cmap='gray', clim=(0., 1.))
-plt.subplot(152)
-plt.imshow(te_a, cmap='gray', clim=(0., 1.))
-plt.subplot(153)
-plt.imshow(sii_a, cmap='gray', clim=(0., 1.))
-plt.subplot(154)
-plt.imshow(sio_a, cmap='gray', clim=(0., 1.))
-plt.subplot(155)
-plt.imshow(si_a, cmap='gray', clim=(0., 1.))
-plt.show()
+# b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 
+# for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
+#     inv_train_accs.append([])
+#     inv_val_accs.append([])
+#     for gExp in tqdm.tqdm(b):
+#         inv_train_accs[-1].append([])
+#         inv_val_accs[-1].append([])
+#         for lExp in tqdm.tqdm(b):
+#             inv_train_accs[-1][-1].append([])
+#             inv_val_accs[-1][-1].append([])
+#             g = math.pow(10, gExp)
+#             l = math.pow(10, lExp)
+#             # Choose training words
+#             training_words_idx = choose_words_for_training(
+#                 train_num_of_words, GRID_VOCAB_SIZE)
+#             # Split data into in_vocab and OOV
+#             in_vocab_features, in_vocab_one_hot_words, oov_features, oov_one_hot_words \
+#                 = split_data_into_in_vocab_and_oov(training_words_idx,
+#                                                    train_val_features,
+#                                                    train_val_one_hot_words)
+#             # Choose only 10000 data points
+#             num_of_data = 10000
+#             in_vocab_features = in_vocab_features[:num_of_data]
+#             in_vocab_one_hot_words = in_vocab_one_hot_words[:num_of_data]
+#             # Choose train and val data within training data
+#             np.random.seed(29)
+#             val_data_idx = np.random.choice(
+#                 len(in_vocab_features), int(.2 * len(in_vocab_features)), replace=False)
+#             train_data_idx = np.delete(
+#                 np.arange(len(in_vocab_features)), val_data_idx)
+#             # Make train and val data from in_vocab_data
+#             train_features = in_vocab_features[train_data_idx]
+#             train_one_hot_words = in_vocab_one_hot_words[train_data_idx]
+#             val_features = in_vocab_features[val_data_idx]
+#             val_one_hot_words = in_vocab_one_hot_words[val_data_idx]
+#             for reduced_dim in tqdm.tqdm(word_embedding_dimensions_list):
+#                 # Split embedding matrix into in_vocab and oov
+#                 reduced_word_to_attr_matrix = word_to_attr_matrix[
+#                     :, :reduced_dim]
+#                 in_vocab_word_to_attr_matrix, oov_word_to_attr_matrix \
+#                     = split_embedding_matrix_into_in_vocab_and_oov(
+#                         training_words_idx, reduced_word_to_attr_matrix)
+#                 # Train
+#                 pred_V = np.dot(np.dot(np.dot(np.dot(np.linalg.inv(np.dot(
+#                     in_vocab_features.T, in_vocab_features)
+#                     + g * np.eye(train_features.shape[1])),
+#                     train_features.T), train_one_hot_words), in_vocab_word_to_attr_matrix),
+#                     np.linalg.inv(np.dot(in_vocab_word_to_attr_matrix.T,
+#                                          in_vocab_word_to_attr_matrix)
+#                                   + l * np.eye(in_vocab_word_to_attr_matrix.shape[1])))
+#                 # Train Acc
+#                 y_train_preds = np.argmax(np.dot(
+#                     np.dot(train_features, pred_V), in_vocab_word_to_attr_matrix.T), axis=1)
+#                 inv_train_accs[-1][-1][-1].append(np.sum(y_train_preds == np.argmax(
+#                     train_one_hot_words, axis=1)) / len(train_one_hot_words))
+#                 # Val Acc
+#                 y_val_preds = np.argmax(np.dot(
+#                     np.dot(val_features, pred_V), in_vocab_word_to_attr_matrix.T), axis=1)
+#                 inv_val_accs[-1][-1][-1].append(np.sum(y_val_preds == np.argmax(
+#                     val_one_hot_words, axis=1)) / len(val_one_hot_words))
 
-########################################
-# VAL to find optimal g and l
-########################################
+# # Plots
 
-trainAcc = []
-valAcc = []
-testAcc = []
-siInAcc = []
-siOOVAcc = []
-siAcc = []
-train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
-b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
-for gExp in tqdm.tqdm(b):
-    trainAcc.append([])
-    valAcc.append([])
-    testAcc.append([])
-    siInAcc.append([])
-    siOOVAcc.append([])
-    siAcc.append([])
-    for lExp in tqdm.tqdm(b):
-        trainAcc[-1].append([])
-        valAcc[-1].append([])
-        testAcc[-1].append([])
-        siInAcc[-1].append([])
-        siOOVAcc[-1].append([])
-        siAcc[-1].append([])
-        for reduced_dim in tqdm.tqdm(range(1, 300, 20)):
-            reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
-            g = math.pow(10, gExp)
-            l = math.pow(10, lExp)
-            predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
-                = learn_v_and_calc_accs(train_num_of_words_list, reduced_word_to_attr_matrix,
-                                        train_val_features[:5000], train_val_one_hot_words[:5000],
-                                        train_val_features[5000:7000], train_val_one_hot_words[5000:7000],
-                                        optG=g, optL=l)
-            trainAcc[-1][-1].append(train_accs)
-            testAcc[-1][-1].append(test_accs)
-            siInAcc[-1][-1].append(si_in_vocab_accs)
-            siOOVAcc[-1][-1].append(si_oov_accs)
-            siAcc[-1][-1].append(si_accs)
+# # For each z
+# for i in range(len(train_num_of_words_list)):
+#     opt_dims = np.unravel_index(np.array(inv_val_accs)[
+#                                 i, :, :, -1].argmax(), np.array(inv_val_accs)[i, :, :, -1].shape)
+#     my_image = np.reshape(np.array(inv_val_accs)[
+#                           i, :, :, -1], (len(b), len(b)))
+#     plt.subplot(2, 5, i + 1)
+#     plt.imshow(my_image, cmap='gray', clim=(0.5, 1.))
+#     plt.scatter([opt_dims[1]], [opt_dims[0]], c='g')
+#     plt.title(str(train_num_of_words_list[i]) + " words in training")
+#     plt.xlabel("l exponent")
+#     plt.ylabel("g exponent")
 
-np.unravel_index(np.array(testAcc).argmax(), np.array(testAcc).shape)
+# plt.suptitle("Finding optimal g and l values for GRIDcorpus")
