@@ -53,24 +53,31 @@ attr_dim = word_to_attr_matrix.shape[1]
 train_num_of_words = z_vals[0]
 test_num_of_words = t_vals[0]
 
-########################################
-# Get FULL Data
-########################################
+# ########################################
+# # Get FULL Data
+# ########################################
 
-train_val_dirs, train_val_word_numbers, train_val_word_idx, \
-    si_dirs, si_word_numbers, si_word_idx \
-    = get_train_val_si_dirs_wordnumbers_wordidx()
+# train_val_dirs, train_val_word_numbers, train_val_word_idx, \
+#     si_dirs, si_word_numbers, si_word_idx \
+#     = get_train_val_si_dirs_wordnumbers_wordidx()
 
-########################################
-# Make FULL features and one_hot_words
-########################################
+# ########################################
+# # Make FULL features and one_hot_words
+# ########################################
 
-train_val_features, train_val_one_hot_words = make_features_and_one_hot_words(
-    train_val_dirs, train_val_word_numbers, train_val_word_idx,
-    LSTMLipreaderEncoder)
+# train_val_features, train_val_one_hot_words = make_features_and_one_hot_words(
+#     train_val_dirs, train_val_word_numbers, train_val_word_idx,
+#     LSTMLipreaderEncoder)
 
-si_features, si_one_hot_words = make_features_and_one_hot_words(
-    si_dirs, si_word_numbers, si_word_idx, LSTMLipreaderEncoder)
+# si_features, si_one_hot_words = make_features_and_one_hot_words(
+#     si_dirs, si_word_numbers, si_word_idx, LSTMLipreaderEncoder)
+
+all_vars = np.load(os.path.join(
+    GRID_DIR, "train_val_si_features_onehotwords.npz"))
+train_val_features = all_vars["train_val_features"]
+train_val_one_hot_words = all_vars["train_val_one_hot_words"]
+si_features = all_vars["si_features"]
+si_one_hot_words = all_vars["si_one_hot_words"]
 
 ########################################
 # Split into train and test (OOV) data
@@ -78,10 +85,15 @@ si_features, si_one_hot_words = make_features_and_one_hot_words(
 # Calc Acc
 ########################################
 
+optG = 1e-4
+optL = 1e-3
+
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
-train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
-    train_num_of_words_list)
+predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
+    = learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
+                            train_val_features, train_val_one_hot_words,
+                            si_features, si_one_hot_words)
 
 print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
 
@@ -97,8 +109,10 @@ sio_a = []
 si_a = []
 for reduced_dim in tqdm.tqdm(range(1, 30)):
     reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
-    train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs = find_accs(
-        train_num_of_words_list, reduced_word_to_attr_matrix)
+    predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
+        = learn_v_and_calc_accs(train_num_of_words_list, word_to_attr_matrix,
+                                train_val_features, train_val_one_hot_words,
+                                si_features, si_one_hot_words)
     print(train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs)
     tr_a.append(train_accs)
     te_a.append(test_accs)
@@ -134,6 +148,8 @@ valAcc = []
 testAcc = []
 siInAcc = []
 siOOVAcc = []
+siAcc = []
+train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 b = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6]
 for gExp in tqdm.tqdm(b):
     trainAcc.append([])
@@ -141,20 +157,22 @@ for gExp in tqdm.tqdm(b):
     testAcc.append([])
     siInAcc.append([])
     siOOVAcc.append([])
+    siAcc.append([])
     for lExp in tqdm.tqdm(b):
         trainAcc[-1].append([])
         valAcc[-1].append([])
         testAcc[-1].append([])
         siInAcc[-1].append([])
         siOOVAcc[-1].append([])
-        for reduced_dim in tqdm.tqdm(range(1, 100, 5)):
+        siAcc[-1].append([])
+        for reduced_dim in tqdm.tqdm(range(1, 300, 20)):
             reduced_word_to_attr_matrix = word_to_attr_matrix[:, :reduced_dim]
             g = math.pow(10, gExp)
             l = math.pow(10, lExp)
             predVs, train_accs, test_accs, si_in_vocab_accs, si_oov_accs, si_accs \
                 = learn_v_and_calc_accs(train_num_of_words_list, reduced_word_to_attr_matrix,
-                                        train_val_features, train_val_one_hot_words,
-                                        si_features, si_one_hot_words,
+                                        train_val_features[:5000], train_val_one_hot_words[:5000],
+                                        train_val_features[5000:7000], train_val_one_hot_words[5000:7000],
                                         optG=g, optL=l)
             trainAcc[-1][-1].append(train_accs)
             testAcc[-1][-1].append(test_accs)
@@ -163,5 +181,3 @@ for gExp in tqdm.tqdm(b):
             siAcc[-1][-1].append(si_accs)
 
 np.unravel_index(np.array(testAcc).argmax(), np.array(testAcc).shape)
-
-
