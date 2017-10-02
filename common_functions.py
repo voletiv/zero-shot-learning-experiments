@@ -8,8 +8,7 @@ import numpy as np
 def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
                                  features, one_hot_words,
                                  si_features=None, si_one_hot_words=None,
-                                 optG=1e-6, optL=1e-3,
-                                 vocab_size=GRID_VOCAB_SIZE):
+                                 optG=1e-6, optL=1e-3, fix_seed=True):
 
     ########################################
     # Split data into in_vocabulary (iv),
@@ -19,7 +18,7 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
 
     # Choose words for training
     training_words_idx = choose_words_for_training(
-        train_num_of_words, vocab_size)
+        train_num_of_words, vocab_size=one_hot_words.shape[1], fix_seed=fix_seed)
 
     # Split data into in_vocabulary (iv) and out_of_vocabulary (oov)
     iv_features, iv_one_hot_words, oov_features, oov_one_hot_words \
@@ -84,7 +83,9 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
             si_oov_one_hot_words, axis=1)) / len(si_oov_one_hot_words)
 
         # SI Acc
-        y_si_preds = np.append(y_si_iv_preds, y_si_oov_preds)
+        # y_si_preds = np.append(y_si_iv_preds, y_si_oov_preds)
+        y_si_preds = np.argmax(
+            np.dot(np.dot(np.vstack((si_iv_features, si_oov_features)), pred_V), word_to_attr_matrix.T), axis=1)
         si_acc = np.sum(y_si_preds == np.append(np.argmax(
             si_iv_one_hot_words, axis=1), np.argmax(si_oov_one_hot_words, axis=1))) / len(y_si_preds)
     else:
@@ -99,12 +100,12 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
 #############################################################
 
 
-def choose_words_for_training(train_num_of_words, vocab_size=GRID_VOCAB_SIZE):
+def choose_words_for_training(train_num_of_words, vocab_size, fix_seed=True):
     # Choose words to keep in training data - training words
-    np.random.seed(29)
-    training_words_idx = np.sort(np.random.choice(
+    if fix_seed:
+        np.random.seed(29)
+    return np.sort(np.random.choice(
         vocab_size, train_num_of_words, replace=False))
-    return training_words_idx
 
 #############################################################
 # SPLIT DATA INTO IN_VOCAB AND OOV
