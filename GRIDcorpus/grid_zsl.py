@@ -70,8 +70,31 @@ LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 # ########################################
 
 # train_val_dirs, train_val_word_numbers, train_val_word_idx, \
-#     si_dirs, si_word_numbers, si_word_idx \
-#     = get_GRIDcorpus_train_val_si_dirs_wordnumbers_wordidx()
+#     = load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(TRAIN_VAL_SPEAKERS_LIST)
+
+# si_dirs, si_word_numbers, si_word_idx \
+#     = load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(SI_SPEAKERS_LIST)
+
+
+# ########################################
+# # Remove 'a' from data
+# # (because some word embeddings like word2vec
+# # dont contain it in their vocab)
+# ########################################
+
+# train_val_rows_to_keep = train_val_word_idx != -1
+
+# train_val_dirs = train_val_dirs[train_val_rows_to_keep]
+# train_val_word_numbers = train_val_word_numbers[train_val_rows_to_keep]
+# train_val_words = train_val_words[train_val_rows_to_keep]
+# train_val_word_idx = train_val_word_idx[train_val_rows_to_keep]
+
+# si_rows_to_keep = si_word_idx != -1
+
+# si_dirs = si_dirs[si_rows_to_keep]
+# si_word_numbers = si_word_numbers[si_rows_to_keep]
+# si_words = si_words[si_rows_to_keep]
+# si_word_idx = si_word_idx[si_rows_to_keep]
 
 # ########################################
 # # Make FULL features and one_hot_words
@@ -187,7 +210,7 @@ grid_embedding_accs[word_embedding]["si_accs_std"] = si_accs_std
 np.save("grid_embedding_accs", grid_embedding_accs)
 
 ########################################
-# Mini plot
+# Mini plots
 ########################################
 
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['oov_accs_mean'],

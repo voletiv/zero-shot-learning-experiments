@@ -11,7 +11,7 @@ from lipreader_params import *
 from LSTM_lipreader_function import *
 
 #############################################################
-# MAKE FEATURES AND ATTRIBUTES
+# MAKE FEATURES AND ONE_HOT_WORDS
 #############################################################
 
 
@@ -60,135 +60,41 @@ def make_GRIDcorpus_features_and_one_hot_words(dirs,
     return features, one_hot_words
 
 #############################################################
-# GET DIRS, WORDNUMBERS, WORDIDX
-#############################################################
-
-
-def get_GRIDcorpus_train_val_si_dirs_wordnumbers_wordidx(
-    trainValSpeakersList=[1, 2, 3, 4, 5, 6, 7, 10],
-    siList=[13, 14]
-):
-
-    ########################################
-    # Read GRIDcorpus directories
-    ########################################
-
-    train_val_dirs, train_val_word_numbers, train_val_words, \
-        si_dirs, si_word_numbers, si_words \
-        = load_speakerdirs_wordnums_words_lists(trainValSpeakersList, siList)
-
-    train_val_dirs = np.array(train_val_dirs)
-    train_val_word_numbers = np.array(train_val_word_numbers)
-    train_val_words = np.array(train_val_words)
-
-    si_dirs = np.array(si_dirs)
-    si_word_numbers = np.array(si_word_numbers)
-    si_words = np.array(si_words)
-
-    ########################################
-    # Make Word Idx
-    # - map words to their index in vocab
-    ########################################
-
-    train_val_word_idx = -np.ones((len(train_val_words)), dtype=int)
-    for i in range(len(train_val_words)):
-        if train_val_words[i] in GRID_VOCAB:
-            train_val_word_idx[i] = GRID_VOCAB.index(train_val_words[i])
-
-    si_word_idx = -np.ones((len(si_words)), dtype=int)
-    for i in range(len(si_words)):
-        if si_words[i] in GRID_VOCAB:
-            si_word_idx[i] = GRID_VOCAB.index(si_words[i])
-
-    ########################################
-    # Remove rows corresponding to
-    ## words not in vocab ('a')
-    ########################################
-
-    train_val_rows_to_keep = train_val_word_idx != -1
-
-    train_val_dirs = train_val_dirs[train_val_rows_to_keep]
-    train_val_word_numbers = train_val_word_numbers[train_val_rows_to_keep]
-    train_val_words = train_val_words[train_val_rows_to_keep]
-    train_val_word_idx = train_val_word_idx[train_val_rows_to_keep]
-
-    si_rows_to_keep = si_word_idx != -1
-
-    si_dirs = si_dirs[si_rows_to_keep]
-    si_word_numbers = si_word_numbers[si_rows_to_keep]
-    si_words = si_words[si_rows_to_keep]
-    si_word_idx = si_word_idx[si_rows_to_keep]
-
-    return train_val_dirs, train_val_word_numbers, train_val_word_idx, \
-        si_dirs, si_word_numbers, si_word_idx
-
-
-#############################################################
 # LOAD SPEAKER_DIRS, WORD_NUMBERS, WORDS
 #############################################################
 
 
-def load_speakerdirs_wordnums_words_lists(
-    trainValSpeakersList=[1, 2, 3, 4, 5, 6, 7, 10],
-    siList=[13, 14]
+def load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(
+    speakers_list=TRAIN_VAL_SPEAKERS_LIST
 ):
     # TRAIN AND VAL
-    trainValDirs = []
-    trainValWordNumbers = []
-    trainValWords = []
+    all_dirs = []
+    all_word_numbers = []
+    all_words = []
     # For each speaker
-    for speaker in tqdm.tqdm(sorted((trainValSpeakersList))):
-        speakerDir = os.path.join(
+    for speaker in tqdm.tqdm(sorted((speakers_list))):
+        speaker_dir = os.path.join(
             GRID_DATA_DIR, 's' + '{0:02d}'.format(speaker))
-        # print(speakerDir)
         # List of all videos for each speaker
-        vidDirs = sorted(glob.glob(os.path.join(speakerDir, '*/')))
+        vid_dirs_list = sorted(glob.glob(os.path.join(speaker_dir, '*/')))
         # Append training directories
-        for vidDir in vidDirs:
-            # print(vidDir)
+        for vid_dir in vid_dirs_list:
             # Words
-            alignFile = vidDir[:-1] + '.align'
+            align_file = vid_dir[:-1] + '.align'
             words = []
-            with open(alignFile) as f:
+            with open(align_file) as f:
                 for line in f:
                     if 'sil' not in line and 'sp' not in line:
                         words.append(line.rstrip().split()[-1])
             # Append
-            for wordNum in range(WORDS_PER_VIDEO):
+            for word_num in range(WORDS_PER_VIDEO):
                 # print(wordNum)
-                trainValDirs.append(vidDir)
-                trainValWordNumbers.append(wordNum)
-                trainValWords.append(words[wordNum])
-    # SPEAKER INDEPENDENT
-    siDirs = []
-    siWordNumbers = []
-    siWords = []
-    # For each speaker
-    for speaker in tqdm.tqdm(sorted((siList))):
-        speakerDir = os.path.join(
-            GRID_DATA_DIR, 's' + '{0:02d}'.format(speaker))
-        # print(speakerDir)
-        # List of all videos for each speaker
-        vidDirs = sorted(glob.glob(os.path.join(speakerDir, '*/')))
-        # Append training directories
-        for vidDir in vidDirs:
-            # print(vidDir)
-            # Words
-            alignFile = vidDir[:-1] + '.align'
-            words = []
-            with open(alignFile) as f:
-                for line in f:
-                    if 'sil' not in line and 'sp' not in line:
-                        words.append(line.rstrip().split()[-1])
-            # Append
-            for wordNum in range(WORDS_PER_VIDEO):
-                # print(wordNum)
-                siDirs.append(vidDir)
-                siWordNumbers.append(wordNum)
-                siWords.append(words[wordNum])
+                all_dirs.append(vid_dir)
+                all_word_numbers.append(word_num)
+                all_wordidx.append(GRID_VOCAB.index(words[word_num]))
     # Return
-    return trainValDirs, trainValWordNumbers, trainValWords, \
-        siDirs, siWordNumbers, siWords
+    return np.array(all_dirs), np.array(all_word_numbers), np.array(all_wordidx)
+
 
 #############################################################
 # LOAD LSTM LIP READER MODEL

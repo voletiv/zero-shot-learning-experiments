@@ -56,6 +56,9 @@ GRID_WORDS_VOCAB_SIZE = NUM_OF_UNIQUE_WORDS - 2
 # so GRID_VOCAB_SIZE is made 50
 GRID_VOCAB_SIZE = 50
 
+TRAIN_VAL_SPEAKERS_LIST = [1, 2, 3, 4, 5, 6, 7, 10]
+SI_SPEAKERS_LIST = [13, 14]
+
 # grid_vocab list
 GRID_VOCAB_LIST_FILE = os.path.join(GRID_DIR, 'grid_vocabulary.txt')
 
