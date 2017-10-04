@@ -31,6 +31,11 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
             si_oov_features, si_oov_one_hot_words \
             = split_data_into_iv_and_oov(training_words_idx,
                                                si_features, si_one_hot_words)
+    else:
+        si_iv_features = None
+        si_iv_one_hot_words = None
+        si_oov_features = None
+        si_oov_one_hot_words = None
 
     ########################################
     # Split embedding matrix into iv and oov
@@ -53,9 +58,46 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
                              iv_word_to_attr_matrix)
                       + optL * np.eye(iv_word_to_attr_matrix.shape[1])))
 
+    # Using my method
+    my_pred_V = np.zeros((iv_features.shape[1], iv_word_to_attr_matrix.shape[1]))
+    for i in range(iv_features.shape[1]):
+        for j in range(iv_word_to_attr_matrix.shape[1]):
+            my_pred_V[i, j] = np.dot(
+                iv_features[:, i],
+                np.dot(iv_one_hot_words,
+                       iv_word_to_attr_matrix[:, j]))/((np.dot(iv_word_to_attr_matrix[:, j],
+                                                        iv_word_to_attr_matrix[:, j]) + optL) \
+                                                       * (np.dot(x[i], x[i]) + optG))
+
     ########################################
     # ACCURACY CALCULATION
     ########################################
+
+    iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc \
+        = calc_accs(pred_V, iv_features, iv_one_hot_words, oov_features,
+                    oov_one_hot_words, si_iv_features, si_iv_one_hot_words,
+                    si_oov_features, si_oov_one_hot_words,
+                    iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix)
+
+
+    my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, si_acc \
+        = calc_accs(my_pred_V, iv_features, iv_one_hot_words, oov_features,
+                    oov_one_hot_words, si_iv_features, si_iv_one_hot_words,
+                    si_oov_features, si_oov_one_hot_words,
+                    iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix)
+
+    return pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc, \
+        my_pred_V, my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, si_acc
+
+#############################################################
+# ACCURACY CALCULATION
+#############################################################
+
+
+def calc_accs(pred_V, iv_features, iv_one_hot_words, oov_features,
+              oov_one_hot_words, si_iv_features, si_iv_one_hot_words,
+              si_oov_features, si_oov_one_hot_words,
+              iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix):
 
     # Train Acc
     y_iv_preds = np.argmax(
@@ -69,7 +111,7 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
     oov_acc = np.sum(y_oov_preds == np.argmax(
         oov_one_hot_words, axis=1)) / len(oov_one_hot_words)
 
-    if si_features is not None and si_one_hot_words is not None:
+    if si_iv_features is not None:
         # SI in vocab Acc
         y_si_iv_preds = np.argmax(
             np.dot(np.dot(si_iv_features, pred_V), iv_word_to_attr_matrix.T), axis=1)
@@ -93,7 +135,7 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
         si_oov_acc = -1
         si_acc = -1
 
-    return pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc
+    return iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc
 
 #############################################################
 # CHOOSE WORDS FOR TRAINING, REST FOR OOV TESTING
@@ -148,4 +190,3 @@ def split_embedding_matrix_into_iv_and_oov(training_words_idx,
     oov_word_to_attr_matrix = word_to_attr_matrix[np.delete(
         np.arange(len(word_to_attr_matrix)), training_words_idx)]
     return iv_word_to_attr_matrix, oov_word_to_attr_matrix
-

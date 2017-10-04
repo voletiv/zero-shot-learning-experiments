@@ -5,10 +5,10 @@ import numpy as np
 import os
 import tqdm
 
-from common_functions import *
 from grid_params import *
 from lipreader_params import *
 from LSTM_lipreader_function import *
+from zsl_functions import *
 
 #############################################################
 # MAKE FEATURES AND ONE_HOT_WORDS
