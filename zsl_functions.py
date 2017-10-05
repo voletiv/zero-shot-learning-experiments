@@ -58,16 +58,24 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
                              iv_word_to_attr_matrix)
                       + optL * np.eye(iv_word_to_attr_matrix.shape[1])))
 
+    p_pred_V = np.dot(np.dot(np.dot(np.dot(np.linalg.pinv(np.dot(
+        iv_features.T, iv_features)
+        + optG * np.eye(iv_features.shape[1])),
+        iv_features.T), iv_one_hot_words), iv_word_to_attr_matrix),
+        np.linalg.pinv(np.dot(iv_word_to_attr_matrix.T,
+                             iv_word_to_attr_matrix)
+                      + optL * np.eye(iv_word_to_attr_matrix.shape[1])))
+
     # Using my method
     my_pred_V = np.zeros((iv_features.shape[1], iv_word_to_attr_matrix.shape[1]))
     for i in range(iv_features.shape[1]):
         for j in range(iv_word_to_attr_matrix.shape[1]):
             my_pred_V[i, j] = np.dot(
-                iv_features[:, i],
+                iv_features[:, i].T,
                 np.dot(iv_one_hot_words,
                        iv_word_to_attr_matrix[:, j]))/((np.dot(iv_word_to_attr_matrix[:, j],
                                                         iv_word_to_attr_matrix[:, j]) + optL) \
-                                                       * (np.dot(x[i], x[i]) + optG))
+                                                       * (np.dot(iv_features[:, i], iv_features[:, i]) + optG))
 
     ########################################
     # ACCURACY CALCULATION
@@ -79,14 +87,21 @@ def learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
                     si_oov_features, si_oov_one_hot_words,
                     iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix)
 
+    p_iv_acc, p_oov_acc, p_si_iv_acc, p_si_oov_acc, p_si_acc \
+        = calc_accs(p_pred_V, iv_features, iv_one_hot_words, oov_features,
+                    oov_one_hot_words, si_iv_features, si_iv_one_hot_words,
+                    si_oov_features, si_oov_one_hot_words,
+                    iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix)
 
-    my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, si_acc \
+
+    my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, my_si_acc \
         = calc_accs(my_pred_V, iv_features, iv_one_hot_words, oov_features,
                     oov_one_hot_words, si_iv_features, si_iv_one_hot_words,
                     si_oov_features, si_oov_one_hot_words,
                     iv_word_to_attr_matrix, oov_word_to_attr_matrix, word_to_attr_matrix)
 
     return pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc, \
+        p_pred_V, p_iv_acc, p_oov_acc, p_si_iv_acc, p_si_oov_acc, p_si_acc, \
         my_pred_V, my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, si_acc
 
 #############################################################

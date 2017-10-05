@@ -130,20 +130,44 @@ si_iv_accs = []
 si_oov_accs = []
 si_accs = []
 
+p_iv_accs = []
+p_oov_accs = []
+p_si_iv_accs = []
+p_si_oov_accs = []
+p_si_accs = []
+
+my_iv_accs = []
+my_oov_accs = []
+my_si_iv_accs = []
+my_si_oov_accs = []
+my_si_accs = []
+
 # Number of words in the training list
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
-number_of_iterations = 100
+number_of_iterations = 5
 for iter in tqdm.tqdm(range(number_of_iterations)):
     iv_accs.append([])
     oov_accs.append([])
     si_iv_accs.append([])
     si_oov_accs.append([])
     si_accs.append([])
+    p_iv_accs.append([])
+    p_oov_accs.append([])
+    p_si_iv_accs.append([])
+    p_si_oov_accs.append([])
+    p_si_accs.append([])
+    my_iv_accs.append([])
+    my_oov_accs.append([])
+    my_si_iv_accs.append([])
+    my_si_oov_accs.append([])
+    my_si_accs.append([])
     # For each value of number of training classes
     for train_num_of_words in tqdm.tqdm(train_num_of_words_list):
         # Pred V and calc accs
-        pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc \
+        pred_V, iv_acc, oov_acc, si_iv_acc, si_oov_acc, si_acc, \
+            p_pred_V, p_iv_acc, p_oov_acc, p_si_iv_acc, p_si_oov_acc, p_si_acc, \
+            my_pred_V, my_iv_acc, my_oov_acc, my_si_iv_acc, my_si_oov_acc, my_si_acc \
             = learn_by_ESZSL_and_calc_accs(train_num_of_words, word_to_attr_matrix,
                                            train_val_features, train_val_one_hot_words,
                                            si_features, si_one_hot_words,
@@ -154,6 +178,16 @@ for iter in tqdm.tqdm(range(number_of_iterations)):
         si_iv_accs[-1].append(si_iv_acc)
         si_oov_accs[-1].append(si_oov_acc)
         si_accs[-1].append(si_acc)
+        p_iv_accs[-1].append(p_iv_acc)
+        p_oov_accs[-1].append(p_oov_acc)
+        p_si_iv_accs[-1].append(p_si_iv_acc)
+        p_si_oov_accs[-1].append(p_si_oov_acc)
+        p_si_accs[-1].append(p_si_acc)
+        my_iv_accs[-1].append(my_iv_acc)
+        my_oov_accs[-1].append(my_oov_acc)
+        my_si_iv_accs[-1].append(my_si_iv_acc)
+        my_si_oov_accs[-1].append(my_si_oov_acc)
+        my_si_accs[-1].append(my_si_acc)
 
 # mean and std
 iv_accs_mean = np.mean(iv_accs, axis=0)
@@ -168,10 +202,44 @@ si_iv_accs_std = np.std(si_iv_accs, axis=0)
 si_oov_accs_std = np.std(si_oov_accs, axis=0)
 si_accs_std = np.std(si_accs, axis=0)
 
+# pseudo-inv mean and std
+p_iv_accs_mean = np.mean(p_iv_accs, axis=0)
+p_oov_accs_mean = np.mean(p_oov_accs, axis=0)
+p_si_iv_accs_mean = np.mean(p_si_iv_accs, axis=0)
+p_si_oov_accs_mean = np.mean(p_si_oov_accs, axis=0)
+p_si_accs_mean = np.mean(p_si_accs, axis=0)
+
+p_iv_accs_std = np.std(p_iv_accs, axis=0)
+p_oov_accs_std = np.std(p_oov_accs, axis=0)
+p_si_iv_accs_std = np.std(p_si_iv_accs, axis=0)
+p_si_oov_accs_std = np.std(p_si_oov_accs, axis=0)
+p_si_accs_std = np.std(p_si_accs, axis=0)
+
+# my mean and std
+my_iv_accs_mean = np.mean(my_iv_accs, axis=0)
+my_oov_accs_mean = np.mean(my_oov_accs, axis=0)
+my_si_iv_accs_mean = np.mean(my_si_iv_accs, axis=0)
+my_si_oov_accs_mean = np.mean(my_si_oov_accs, axis=0)
+my_si_accs_mean = np.mean(my_si_accs, axis=0)
+
+my_iv_accs_std = np.std(my_iv_accs, axis=0)
+my_oov_accs_std = np.std(my_oov_accs, axis=0)
+my_si_iv_accs_std = np.std(my_si_iv_accs, axis=0)
+my_si_oov_accs_std = np.std(my_si_oov_accs, axis=0)
+my_si_accs_std = np.std(my_si_accs, axis=0)
+
 # Print
 for i in range(len(train_num_of_words_list)):
     print(iv_accs_mean[i], oov_accs_mean[i], si_iv_accs_mean[i],
           si_oov_accs_mean[i], si_accs_mean[i])
+
+for i in range(len(train_num_of_words_list)):
+    print(p_iv_accs_mean[i], p_oov_accs_mean[i], p_si_iv_accs_mean[i],
+          p_si_oov_accs_mean[i], p_si_accs_mean[i])
+
+for i in range(len(train_num_of_words_list)):
+    print(my_iv_accs_mean[i], my_oov_accs_mean[i], my_si_iv_accs_mean[i],
+          my_si_oov_accs_mean[i], my_si_accs_mean[i])
 
 # Plot
 plt.errorbar(train_num_of_words_list, iv_accs_mean, yerr=iv_accs_std,
