@@ -10,6 +10,7 @@
 
 import numpy as np
 import os
+import tqdm
 
 from gensim.models import KeyedVectors
 
@@ -21,17 +22,23 @@ from LRW.lrw_params import *
 ## Params
 ########################################
 
+WORD_EMBEDDING_SAVE_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/'
+
 # Directory where the word2vec file
 # 'GoogleNews-vectors-negative300.bin' is saved
-WORD2VEC_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/Word2Vec'
+WORD2VEC_BIN_SAVED_DIR = os.path.join(WORD_EMBEDDING_SAVE_DIR, 'Word2Vec')
 
 # Directory where the fasttext file
 # 'wiki.en.vec' is saved
-FASTTEXT_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/FastText'
+FASTTEXT_BIN_SAVED_DIR = os.path.join(WORD_EMBEDDING_SAVE_DIR, 'FastText')
 
 # Directory where the GloVe file
 # 'glove.6B.300d.txt' is saved
-GLOVE_BIN_SAVED_DIR = '/media/voletiv/01D2BF774AC76280/Word-Embeddings/GloVe'
+GLOVE_BIN_SAVED_DIR = os.path.join(WORD_EMBEDDING_SAVE_DIR, 'GloVe')
+
+# Directory where the EigenWordsWithPriorKnowledge file
+# 'Eigenwords_Wiki5_alpha0.5_WordNetPriorKnowledge.txt' is saved
+EWPK_BIN_SAVED_DIR = os.path.join(WORD_EMBEDDING_SAVE_DIR, 'EigenWordsPK')
 
 # word2vec, fasttext, GloVe dim
 EMBEDDING_DIM = 300
@@ -51,48 +58,59 @@ EMBEDDING_DIM = 300
 
 # word_embedding = 'word2vec'
 # word_embedding = 'fasttext'
-wordEmbedding = 'glove'
+# word_embedding = 'glove'
+word_embedding = 'ewpk'
+
 
 dataset = 'grid'
 # dataset = 'lrw'
 
 ########################################
-# Load word2vec, fasttext binary files
+# Load word2vec/fasttext/glove/EWPK binary files
 ########################################
 
-if wordEmbedding == 'word2vec':
+
+def load_text_model(text_file, text_vocab_size):
+    # Glove: 'glove.6B.300d.txt', 400000
+    # EWPK: 'Eigenwords_Wiki5_alpha0.5_WordNetPriorKnowledge', 200000
+    print("Loading model from", text_file)
+    model = {}
+    with open(text_file, 'r') as f:
+        for line in tqdm.tqdm(f, total=text_vocab_size):
+            splitLine = line.split()
+            word = splitLine[0]
+            embedding = np.array([float(val) for val in splitLine[1:]])
+            model[word] = embedding
+    print("Done.", len(model)," words loaded!")
+    return model
+
+if word_embedding == 'word2vec':
     # word2vec
     word2vecBinFile = os.path.join(WORD2VEC_BIN_SAVED_DIR,
         'GoogleNews-vectors-negative300.bin')
     word2vec = KeyedVectors.load_word2vec_format(word2vecBinFile, binary=True)
-elif wordEmbedding == 'fastText':
+elif word_embedding == 'fastText':
     # fasttext
     fasttextBinFile = os.path.join(FASTTEXT_BIN_SAVED_DIR,
         'wiki.en.vec')
     fasttext = KeyedVectors.load_word2vec_format(fasttextBinFile)
-elif wordEmbedding == 'glove':
+elif word_embedding == 'glove':
     # GloVe
     gloveBinFile = os.path.join(GLOVE_BIN_SAVED_DIR,
         'glove.6B.300d.txt')
-    def load_glove_model(gloveFile):
-        print("Loading Glove Model")
-        model = {}
-        nOfLines = i+1
-        with open(gloveFile, 'r') as f:
-            for line in tqdm.tqdm(f, total=400000):
-                splitLine = line.split()
-                word = splitLine[0]
-                embedding = np.array([float(val) for val in splitLine[1:]])
-                model[word] = embedding
-        print("Done.", len(model)," words loaded!")
-        return model
-    glove = load_glove_model(gloveBinFile)
+    glove = load_text_model(gloveBinFile, 400000)
+elif word_embedding == 'ewpk':
+    # Eigenwords with Prior Knowledge
+    ewpkBinFile = os.path.join(EWPK_BIN_SAVED_DIR,
+        'Eigenwords_Wiki5_alpha0.5_WordNetPriorKnowledge.txt')
+    ewpk = load_text_model(ewpkBinFile, 200000)
+
 
 ########################################
 # Make embedding matrices
 ########################################
 
-if wordEmbedding == 'word2vec':
+if word_embedding == 'word2vec':
     if dataset == 'lrw':
         # LRW
         lrw_embedding_matrix_word2vec = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
@@ -103,7 +121,7 @@ if wordEmbedding == 'word2vec':
         grid_embedding_matrix_word2vec = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
         for i, word in enumerate(GRID_VOCAB):
             grid_embedding_matrix_word2vec[i] = word2vec.word_vec(word)
-elif wordEmbedding == 'fasttext':
+elif word_embedding == 'fasttext':
     if dataset == 'lrw':
         # LRW
         lrw_embedding_matrix_fasttext = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
@@ -114,7 +132,7 @@ elif wordEmbedding == 'fasttext':
         grid_embedding_matrix_fasttext = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
         for i, word in enumerate(GRID_VOCAB):
             grid_embedding_matrix_fasttext[i] = fasttext.word_vec(word)
-elif wordEmbedding == 'glove':
+elif word_embedding == 'glove':
     if dataset == 'lrw':
         # LRW
         lrw_embedding_matrix_glove = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
@@ -125,31 +143,49 @@ elif wordEmbedding == 'glove':
         grid_embedding_matrix_glove = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
         for i, word in enumerate(GRID_VOCAB):
             grid_embedding_matrix_glove[i] = glove[word]
+elif word_embedding == 'ewpk':
+    if dataset == 'lrw':
+        # LRW
+        lrw_embedding_matrix_glove = np.zeros((LRW_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(LRW_VOCAB):
+            ewpk_embedding_matrix_ewpk[i] = ewpk[word]
+    elif dataset == 'grid':
+        # GRIDcorpus
+        grid_embedding_matrix_glove = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
+        for i, word in enumerate(GRID_VOCAB):
+            grid_embedding_matrix_ewpk[i] = ewpk[word]
 
 
 ########################################
 # Save embedding matrices
 ########################################
 
-if wordEmbedding == 'word2vec':
+if word_embedding == 'word2vec':
     if dataset == 'lrw':
         np.save("lrw_embedding_matrix_word2vec", lrw_embedding_matrix_word2vec)
     elif dataset == 'grid':
         np.save("grid_embedding_matrix_word2vec", grid_embedding_matrix_word2vec)
-elif wordEmbedding == 'fasttext':
+elif word_embedding == 'fasttext':
     if dataset == 'lrw':
         np.save("lrw_embedding_matrix_fasttext", lrw_embedding_matrix_fasttext)
     elif dataset == 'grid':
         np.save("grid_embedding_matrix_fasttext", grid_embedding_matrix_fasttext)
-elif wordEmbedding == 'glove':
+elif word_embedding == 'glove':
     if dataset == 'lrw':
         np.save("lrw_embedding_matrix_glove", lrw_embedding_matrix_glove)
     elif dataset == 'grid':
         np.save("grid_embedding_matrix_glove", grid_embedding_matrix_glove)
+elif word_embedding == 'ewpk':
+    if dataset == 'lrw':
+        np.save("lrw_embedding_matrix_ewpk", lrw_embedding_matrix_ewpk)
+    elif dataset == 'grid':
+        np.save("grid_embedding_matrix_ewpk", grid_embedding_matrix_ewpk)
 
 # ########################################
 # # Check for words being in word2vec
 # ########################################
+
+# LRW
 
 # # lrw_vocab in word2vec
 # # All 500 words in lrw_vocab are present in word2vec vocab
@@ -163,19 +199,45 @@ elif wordEmbedding == 'glove':
 #     if word not in fasttext.vocab:
 #         print(word)
 
+# # lrw_vocab in glove
+# # All 500 words in lrw_vocab are present in word2vec vocab
+# for word in LRW_VOCAB:
+#     if word not in glove.vocab:
+#         print(word)
+
+# # lrw_vocab in ewpk
+# # All 500 words in lrw_vocab are present in word2vec vocab
+# for word in LRW_VOCAB:
+#     if word not in ewpk.vocab:
+#         print(word)
+
+# GRID
+
 # # grid_vocab in word2vec
 # # 50 of 51 words in grid_vocab are present in word2vec vocab
-# # 'a' is missing
+# # *****'a' is missing*****
 # for word in GRID_VOCAB:
 #     if word not in word2vec.vocab:
 #         print(word)
 #         grid_vocab.remove(word)
 
 # # grid_vocab in fasttext
-# # 50 of 51 words in grid_vocab are present in word2vec vocab
-# # 'a' is missing
 # for word in GRID_VOCAB:
 #     if word not in fasttext.vocab:
 #         print(word)
 #         grid_vocab.remove(word)
+
+# # grid_vocab in glove
+# for word in GRID_VOCAB:
+#     if word not in glove.vocab:
+#         print(word)
+#         grid_vocab.remove(word)
+
+
+# # grid_vocab in ewpk
+# for word in GRID_VOCAB:
+#     if word not in ewpk.vocab:
+#         print(word)
+#         grid_vocab.remove(word)
+
 
