@@ -14,7 +14,7 @@ if ROOT_DIR not in sys.path:
 
 # Lip reader directory
 if 'LIPREADER_DIR' not in dir():
-    LIPREADER_DIR = os.path.join(ROOT_DIR, 'Lipreader')
+    LIPREADER_DIR = os.path.join(ROOT_DIR, 'lipreader')
 
 if LIPREADER_DIR not in sys.path:
     sys.path.append(LIPREADER_DIR)

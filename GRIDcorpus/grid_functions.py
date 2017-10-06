@@ -70,7 +70,7 @@ def load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(
     # TRAIN AND VAL
     all_dirs = []
     all_word_numbers = []
-    all_words = []
+    all_wordidx = []
     # For each speaker
     for speaker in tqdm.tqdm(sorted((speakers_list))):
         speaker_dir = os.path.join(
