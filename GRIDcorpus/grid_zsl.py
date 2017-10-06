@@ -21,9 +21,11 @@ from grid_functions import *
 ########################################
 
 grid_embedding_accs = {}
-grid_embedding_accs["word2vec"] = {}
-grid_embedding_accs["fasttext"] = {}
-grid_embedding_accs["GloVe"] = {}
+# grid_embedding_accs["word2vec"] = {}
+# grid_embedding_accs["fasttext"] = {}
+# grid_embedding_accs["GloVe"] = {}
+
+grid_embedding_accs = np.load('grid_embedding_accs.npy').item()
 
 ########################################
 # Set embedding type
@@ -31,8 +33,9 @@ grid_embedding_accs["GloVe"] = {}
 
 # WORD2VEC or FASTTEXT or GLOVE
 # word_embedding = 'word2vec'
-word_embedding = 'fasttext'
+# word_embedding = 'fasttext'
 # word_embedding = 'glove'
+word_embedding = 'ewpk'
 
 ########################################
 # Read embedding matrices
@@ -41,23 +44,21 @@ word_embedding = 'fasttext'
 # word_to_attr_matrix ===  class_dim x attr_dim
 
 # word2vec
-word_to_attr_matrix_word2vec = np.load(os.path.join(GRID_DIR,
-                                                    'grid_embedding_matrix_word2vec.npy'))
-
-# fasttext
-word_to_attr_matrix_fasttext = np.load(os.path.join(GRID_DIR,
-                                                    'grid_embedding_matrix_fasttext.npy'))
-
-# glove
-word_to_attr_matrix_glove = np.load(os.path.join(GRID_DIR,
-                                                 'grid_embedding_matrix_glove.npy'))
-
 if word_embedding == 'word2vec':
-    word_to_attr_matrix = word_to_attr_matrix_word2vec
+    word_to_attr_matrix = np.load(os.path.join(GRID_DIR,
+                                               'grid_embedding_matrix_word2vec.npy'))
+# fasttext
 elif word_embedding == 'fasttext':
-    word_to_attr_matrix = word_to_attr_matrix_fasttext
+    word_to_attr_matrix = np.load(os.path.join(GRID_DIR,
+                                               'grid_embedding_matrix_fasttext.npy'))
+# GloVe
 elif word_embedding == 'glove':
-    word_to_attr_matrix = word_to_attr_matrix_glove
+    word_to_attr_matrix = np.load(os.path.join(GRID_DIR,
+                                               'grid_embedding_matrix_glove.npy'))
+# Eigenwords with Prior Knowledge
+elif word_embedding == 'ewpk':
+    word_to_attr_matrix = np.load(os.path.join(GRID_DIR,
+                                               'grid_embedding_matrix_ewpk.npy'))
 
 ########################################
 # Load LipReader
@@ -133,7 +134,7 @@ si_accs = []
 # Number of words in the training list
 train_num_of_words_list = np.arange(5, GRID_VOCAB_SIZE, 5)
 
-number_of_iterations = 5
+number_of_iterations = 100
 for iter in tqdm.tqdm(range(number_of_iterations)):
     iv_accs.append([])
     oov_accs.append([])
@@ -222,6 +223,9 @@ plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['oov_accs_
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['oov_accs_mean'],
              yerr=grid_embedding_accs['glove']['oov_accs_std'], label='glove',
              linestyle='--', fmt='o', capsize=3)
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['ewpk']['oov_accs_mean'],
+             yerr=grid_embedding_accs['glove']['oov_accs_std'], label='ewpk',
+             linestyle='--', fmt='o', capsize=3)
 plt.legend(fontsize=12)
 plt.ylim([0., 1.])
 plt.xlabel("Number of words in the training vocabulary, out of 50")
@@ -238,6 +242,9 @@ plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['si_iv_acc
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['si_iv_accs_mean'],
              yerr=grid_embedding_accs['glove']['si_iv_accs_std'], label='iv-glove',
              linestyle=':', fmt='o', capsize=3, c='C2')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['ewpk']['si_iv_accs_mean'],
+             yerr=grid_embedding_accs['glove']['si_iv_accs_std'], label='iv-ewpk',
+             linestyle=':', fmt='o', capsize=3, c='C3')
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['si_oov_accs_mean'],
              yerr=grid_embedding_accs['word2vec']['si_oov_accs_std'], label='oov-word2vec',
              linestyle='-', fmt='o', capsize=3, c='C0')
@@ -247,6 +254,9 @@ plt.errorbar(train_num_of_words_list, grid_embedding_accs['fasttext']['si_oov_ac
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['si_oov_accs_mean'],
              yerr=grid_embedding_accs['glove']['si_oov_accs_std'], label='oov-glove',
              linestyle='-', fmt='o', capsize=3, c='C2')
+plt.errorbar(train_num_of_words_list, grid_embedding_accs['ewpk']['si_oov_accs_mean'],
+             yerr=grid_embedding_accs['glove']['si_oov_accs_std'], label='oov-ewpk',
+             linestyle='-', fmt='o', capsize=3, c='C3')
 plt.legend(fontsize=12)
 plt.ylim([0., 1.])
 plt.xlabel("Number of words in the training vocabulary, out of 50")

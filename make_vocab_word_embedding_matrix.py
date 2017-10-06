@@ -151,7 +151,7 @@ elif word_embedding == 'ewpk':
             ewpk_embedding_matrix_ewpk[i] = ewpk[word]
     elif dataset == 'grid':
         # GRIDcorpus
-        grid_embedding_matrix_glove = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
+        grid_embedding_matrix_ewpk = np.zeros((GRID_VOCAB_SIZE, EMBEDDING_DIM))
         for i, word in enumerate(GRID_VOCAB):
             grid_embedding_matrix_ewpk[i] = ewpk[word]
 
@@ -235,8 +235,9 @@ elif word_embedding == 'ewpk':
 
 
 # # grid_vocab in ewpk
+# ewpk_vocab = ewpk.keys()
 # for word in GRID_VOCAB:
-#     if word not in ewpk.vocab:
+#     if word not in ewpk_vocab:
 #         print(word)
 #         grid_vocab.remove(word)
 
