@@ -20,10 +20,7 @@ from grid_functions import *
 # TO SAVE
 ########################################
 
-grid_embedding_accs = {}
-# grid_embedding_accs["word2vec"] = {}
-# grid_embedding_accs["fasttext"] = {}
-# grid_embedding_accs["GloVe"] = {}
+# grid_embedding_accs = {}
 
 grid_embedding_accs = np.load('grid_embedding_accs.npy').item()
 
@@ -32,10 +29,10 @@ grid_embedding_accs = np.load('grid_embedding_accs.npy').item()
 ########################################
 
 # WORD2VEC or FASTTEXT or GLOVE
-# word_embedding = 'word2vec'
+word_embedding = 'word2vec'
 # word_embedding = 'fasttext'
 # word_embedding = 'glove'
-word_embedding = 'ewpk'
+# word_embedding = 'ewpk'
 
 ########################################
 # Read embedding matrices
@@ -87,14 +84,12 @@ LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 
 # train_val_dirs = train_val_dirs[train_val_rows_to_keep]
 # train_val_word_numbers = train_val_word_numbers[train_val_rows_to_keep]
-# train_val_words = train_val_words[train_val_rows_to_keep]
 # train_val_word_idx = train_val_word_idx[train_val_rows_to_keep]
 
 # si_rows_to_keep = si_word_idx != -1
 
 # si_dirs = si_dirs[si_rows_to_keep]
 # si_word_numbers = si_word_numbers[si_rows_to_keep]
-# si_words = si_words[si_rows_to_keep]
 # si_word_idx = si_word_idx[si_rows_to_keep]
 
 # ########################################
@@ -109,12 +104,18 @@ LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 # si_features, si_one_hot_words = make_GRIDcorpus_features_and_one_hot_words(
 #     si_dirs, si_word_numbers, si_word_idx, LSTMLipreaderEncoder)
 
+# np.savez("train_val_si_LSTM256_features_onehotwords",
+#     train_val_LSTM256_features=train_val_LSTM256_features,
+#     train_val_LSTM256_one_hot_words=train_val_LSTM256_one_hot_words,
+#     si_LSTM256_features=si_LSTM256_features,
+#     si_LSTM256_one_hot_words=si_LSTM256_one_hot_words)
+
 all_vars = np.load(os.path.join(
     GRID_DIR, "train_val_si_features_onehotwords.npz"))
-train_val_features = all_vars["train_val_features"]
-train_val_one_hot_words = all_vars["train_val_one_hot_words"]
-si_features = all_vars["si_features"]
-si_one_hot_words = all_vars["si_one_hot_words"]
+train_val_features = all_vars["train_val_syncnet_features"]
+train_val_one_hot_words = all_vars["train_val_syncnet_one_hot_words"]
+si_features = all_vars["si_syncnet_features"]
+si_one_hot_words = all_vars["si_syncnet_one_hot_words"]
 
 ########################################
 # Split into train and test (OOV) data
@@ -186,6 +187,7 @@ plt.errorbar(train_num_of_words_list, si_oov_accs_mean, yerr=si_oov_accs_std,
 plt.errorbar(train_num_of_words_list, si_accs_mean, yerr=si_accs_std,
              capsize=3, label='[iv+oov] - speaker-INdependent')
 plt.legend(loc='upper right')
+plt.ylim([0., 1.])
 plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
@@ -195,6 +197,8 @@ plt.show()
 ########################################
 # Save
 ########################################
+
+grid_embedding_accs[word_embedding] = {}
 
 grid_embedding_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
 grid_embedding_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
@@ -214,6 +218,7 @@ np.save("grid_embedding_accs", grid_embedding_accs)
 # Mini plots
 ########################################
 
+# OOV
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['oov_accs_mean'],
              yerr=grid_embedding_accs['word2vec']['oov_accs_std'], label='word2vec',
              linestyle='--', fmt='o', capsize=3)
@@ -228,11 +233,13 @@ plt.errorbar(train_num_of_words_list, grid_embedding_accs['ewpk']['oov_accs_mean
              linestyle='--', fmt='o', capsize=3)
 plt.legend(fontsize=12)
 plt.ylim([0., 1.])
+plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
-plt.title("OOV accuracies on GRIDcorpus")
+plt.title("ZSL OOV accuracies on GRIDcorpus")
 plt.show()
 
+# SI
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['word2vec']['si_iv_accs_mean'],
              yerr=grid_embedding_accs['word2vec']['si_iv_accs_std'], label='iv-word2vec',
              linestyle=':', fmt='o', capsize=3, c='C0')
@@ -257,11 +264,12 @@ plt.errorbar(train_num_of_words_list, grid_embedding_accs['glove']['si_oov_accs_
 plt.errorbar(train_num_of_words_list, grid_embedding_accs['ewpk']['si_oov_accs_mean'],
              yerr=grid_embedding_accs['glove']['si_oov_accs_std'], label='oov-ewpk',
              linestyle='-', fmt='o', capsize=3, c='C3')
-plt.legend(fontsize=12)
+plt.legend(fontsize=11, loc='upper right')
 plt.ylim([0., 1.])
+plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
-plt.title("Speaker-Independent accuracies on GRIDcorpus")
+plt.title("ZSL Speaker-Independent accuracies on GRIDcorpus")
 plt.show()
 
 

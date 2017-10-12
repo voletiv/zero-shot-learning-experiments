@@ -16,3 +16,6 @@ lipreader_filelist = os.listdir(LIPREADER_DIR)
 for file in lipreader_filelist:
     if ('lipreader' in file or 'Lipreader' in file or 'LipReader' in file or 'LIPREADER' in file) and '.hdf5' in file:
         LIPREADER_MODEL_FILE = os.path.join(LIPREADER_DIR, file)
+
+
+
