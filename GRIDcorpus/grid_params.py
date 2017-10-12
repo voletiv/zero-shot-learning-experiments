@@ -60,7 +60,8 @@ TRAIN_VAL_SPEAKERS_LIST = [1, 2, 3, 4, 5, 6, 7, 10]
 SI_SPEAKERS_LIST = [13, 14]
 
 # grid_vocab list
-GRID_VOCAB_LIST_FILE = os.path.join(GRID_DIR, 'grid_vocabulary.txt')
+GRID_VOCAB_ZSL_LIST_FILE = os.path.join(GRID_DIR, 'grid_vocabulary_zsl.txt')
+GRID_VOCAB_FULL_LIST_FILE = os.path.join(GRID_DIR, 'grid_vocabulary_full.txt')
 
 
 #############################################################
@@ -75,4 +76,6 @@ def load_gridcorpus_vocab_list(GRID_VOCAB_LIST_FILE):
             grid_vocab.append(word)
     return grid_vocab
 
-GRID_VOCAB = load_gridcorpus_vocab_list(GRID_VOCAB_LIST_FILE)
+GRID_VOCAB_ZSL = load_gridcorpus_vocab_list(GRID_VOCAB_ZSL_LIST_FILE)
+
+GRID_VOCAB_FULL = load_gridcorpus_vocab_list(GRID_VOCAB_FULL_LIST_FILE)

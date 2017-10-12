@@ -8,7 +8,7 @@ import tqdm
 
 from grid_params import *
 from lipreader_params import *
-# from LSTM_lipreader_function import *
+from LSTM_lipreader_function import *
 from zsl_functions import *
 
 from skimage.transform import resize
@@ -117,12 +117,12 @@ def make_GRIDcorpus_features_and_one_hot_words_using_syncnet(dirs,
         # All mouth file names of video
         frameFiles = sorted(glob.glob(os.path.join(vidDir, '*Frame*.jpg')))
         # Note the file names of the word
-        wordMouthFiles = frameFiles[wordStartFrame:wordEndFrame + 1]
+        wordFrameFiles = frameFiles[wordStartFrame:wordEndFrame + 1]
         # Initialize the array of images for this word
         wordImages = np.zeros((1, 112, 112, 5))
         # For each frame of this word
-        for f, wordMouthFrame in enumerate(wordMouthFiles):
-            wordImages[0, :, :, f] = load_mouth_from_frame(wordMouthFrame)
+        for f, wordFrameFrame in enumerate(wordFrameFiles):
+            wordImages[0, :, :, f] = load_mouth_from_frame(wordFrameFrame, detector, predictor)
         # MAKE FEATURES
         features[i] = lipreaderEncoder.predict(wordImages)
         # MAKE ONE HOT WORDS
@@ -131,8 +131,21 @@ def make_GRIDcorpus_features_and_one_hot_words_using_syncnet(dirs,
     return features, one_hot_words
 
 
-def load_mouth_from_frame(wordMouthFrame):
-    frameImage = imageio.imread(wordMouthFrame)
+def load_detector_and_predictor(verbose=False):
+    try:
+        detector = dlib.get_frontal_face_detector()
+        predictor = dlib.shape_predictor(SHAPE_PREDICTOR_PATH)
+        if verbose:
+            print("Detector and Predictor loaded. (load_detector_and_predictor)")
+        return detector, predictor
+    # If error in SHAPE_PREDICTOR_PATH
+    except RuntimeError:
+        raise ValueError("\n\nERROR: Wrong Shape Predictor .dat file path - " + \
+            SHAPE_PREDICTOR_PATH, "(load_detector_and_predictor)\n\n")
+
+
+def load_mouth_from_frame(wordFrameFrame, detector, predictor):
+    frameImage = imageio.imread(wordFrameFrame)
     face = detector(frame, 1)[0]
     shape = predictor(frame, face)
     mouthCoords = np.array([[shape.part(i).x, shape.part(i).y]
@@ -148,19 +161,6 @@ def load_mouth_from_frame(wordMouthFrame):
                                      expandedMouthRect[0]:expandedMouthRect[0] + expandedMouthRect[2]],
                                (112, 112))
     return resizedMouthImage
-
-
-def load_detector_and_predictor(verbose=False):
-    try:
-        detector = dlib.get_frontal_face_detector()
-        predictor = dlib.shape_predictor(SHAPE_PREDICTOR_PATH)
-        if verbose:
-            print("Detector and Predictor loaded. (load_detector_and_predictor)")
-        return detector, predictor
-    # If error in SHAPE_PREDICTOR_PATH
-    except RuntimeError:
-        raise ValueError("\n\nERROR: Wrong Shape Predictor .dat file path - " + \
-            SHAPE_PREDICTOR_PATH, "(load_detector_and_predictor)\n\n")
 
 
 def make_rect_shape_square(rect):
@@ -193,7 +193,8 @@ def expand_rect(rect, scale=1.5, frame_shape=(256, 256)):
 
 def load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(
     speakers_list=TRAIN_VAL_SPEAKERS_LIST,
-    grid_data_dir=GRID_DATA_DIR
+    grid_data_dir=GRID_DATA_DIR,
+    grid_vocab=GRID_VOCAB_ZSL
 ):
     # TRAIN AND VAL
     all_dirs = []
@@ -219,9 +220,9 @@ def load_GRIDcorpus_speakers_dirs_wordnums_wordidx_lists(
                 # print(wordNum)
                 all_dirs.append(vid_dir)
                 all_word_numbers.append(word_num)
-                if words[word_num] != 'a':
-                    all_wordidx.append(GRID_VOCAB.index(words[word_num]))
-                else:
+                try:
+                    all_wordidx.append(grid_vocab.index(words[word_num]))
+                except:
                     all_wordidx.append(-1)
     # Return
     return np.array(all_dirs), np.array(all_word_numbers), np.array(all_wordidx)
