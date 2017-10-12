@@ -111,7 +111,7 @@ LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 #     si_LSTM256_one_hot_words=si_LSTM256_one_hot_words)
 
 all_vars = np.load(os.path.join(
-    GRID_DIR, "train_val_si_features_onehotwords.npz"))
+    GRID_DIR, "train_val_si_syncnet_features_onehotwords.npz"))
 train_val_features = all_vars["train_val_syncnet_features"]
 train_val_one_hot_words = all_vars["train_val_syncnet_one_hot_words"]
 si_features = all_vars["si_syncnet_features"]
@@ -191,28 +191,28 @@ plt.ylim([0., 1.])
 plt.gca().yaxis.grid(True, alpha=0.5)
 plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
-plt.title("ESZSL - GRIDcorpus - " + word_embedding)
+plt.title("ESZSL - GRIDcorpus - syncnet - " + word_embedding)
 plt.show()
 
 ########################################
 # Save
 ########################################
 
-grid_embedding_accs[word_embedding] = {}
+grid_embedding_syncnet_accs[word_embedding] = {}
 
-grid_embedding_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
-grid_embedding_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
-grid_embedding_accs[word_embedding]["si_iv_accs_mean"] = si_iv_accs_mean
-grid_embedding_accs[word_embedding]["si_oov_accs_mean"] = si_oov_accs_mean
-grid_embedding_accs[word_embedding]["si_accs_mean"] = si_accs_mean
+grid_embedding_syncnet_accs[word_embedding]["iv_accs_mean"] = iv_accs_mean
+grid_embedding_syncnet_accs[word_embedding]["oov_accs_mean"] = oov_accs_mean
+grid_embedding_syncnet_accs[word_embedding]["si_iv_accs_mean"] = si_iv_accs_mean
+grid_embedding_syncnet_accs[word_embedding]["si_oov_accs_mean"] = si_oov_accs_mean
+grid_embedding_syncnet_accs[word_embedding]["si_accs_mean"] = si_accs_mean
 
-grid_embedding_accs[word_embedding]["iv_accs_std"] = iv_accs_std
-grid_embedding_accs[word_embedding]["oov_accs_std"] = oov_accs_std
-grid_embedding_accs[word_embedding]["si_iv_accs_std"] = si_iv_accs_std
-grid_embedding_accs[word_embedding]["si_oov_accs_std"] = si_oov_accs_std
-grid_embedding_accs[word_embedding]["si_accs_std"] = si_accs_std
+grid_embedding_syncnet_accs[word_embedding]["iv_accs_std"] = iv_accs_std
+grid_embedding_syncnet_accs[word_embedding]["oov_accs_std"] = oov_accs_std
+grid_embedding_syncnet_accs[word_embedding]["si_iv_accs_std"] = si_iv_accs_std
+grid_embedding_syncnet_accs[word_embedding]["si_oov_accs_std"] = si_oov_accs_std
+grid_embedding_syncnet_accs[word_embedding]["si_accs_std"] = si_accs_std
 
-np.save("grid_embedding_accs", grid_embedding_accs)
+np.save("grid_embedding_syncnet_accs", grid_embedding_syncnet_accs)
 
 ########################################
 # Mini plots
