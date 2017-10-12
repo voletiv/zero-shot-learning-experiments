@@ -105,3 +105,4 @@ ENV/
 
 # numpy
 *.npz
+lipreader_preds.npy
