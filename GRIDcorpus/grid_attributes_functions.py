@@ -1,0 +1,6 @@
+# GET GRIDCORPUS ATTRIBUTES
+
+
+
+
+
