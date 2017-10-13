@@ -72,3 +72,118 @@ def load_detector_and_predictor(verbose=False):
         raise ValueError("\n\nERROR: Wrong Shape Predictor .dat file path - " + \
             SHAPE_PREDICTOR_PATH, "(load_detector_and_predictor)\n\n")
 
+
+def read_txt_files_line_by_line(word='Estimating', stop_idx=None):
+    while 1:
+        idx = -1
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_00.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_01.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_02.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_03.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_04.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val.txt', 'r') as f:
+            for line in f:
+                if word in line:
+                    idx += 1
+                    # train_val_head_pose_lines.append(line)
+                    # if idx == stop_idx:
+                    #     return line
+                    yield line
+
+
+def read_txt_files_line_range(word='Estimating', start_idx=0, stop_idx=3):
+    lines = []
+    idx = -1
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_00.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_01.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_02.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_03.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_04.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val.txt', 'r') as f:
+        for line in f:
+            if word in line:
+                idx += 1
+                # train_val_head_pose_lines.append(line)
+                if idx >= stop_idx:
+                    return lines
+                if idx >= start_idx:
+                    lines.append(line)
+
+
+
+

@@ -77,7 +77,7 @@ np.save("attributes", attributes)
 LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 
 ########################################
-# LipReader predictions, word durations
+# LipReader predictions
 ########################################
 
 lipreader_preds = {}
@@ -118,7 +118,10 @@ np.save('lipreader_preds', lipreader_preds)
 # ATTR - Word durations
 ########################################
 
-train_val_word_durations = np.zeros(len(train_val_dirs), dtype=int)
+train_val_word_metadata = {}
+train_val_word_metadata['startFrame'] = np.zeros(len(train_val_dirs), dtype=int)
+train_val_word_metadata['endFrame'] = np.zeros(len(train_val_dirs), dtype=int)
+train_val_word_metadata['wordDuration'] = np.zeros(len(train_val_dirs), dtype=int)
 for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(train_val_dirs, train_val_word_numbers, train_val_word_idx)), total=len(train_val_dirs)):
     alignFile = vidDir[:-1] + '.align'
     # Word-Time data
@@ -134,12 +137,17 @@ for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(train_val_dirs, t
                                 0]) / maxClipDuration * FRAMES_PER_VIDEO)
     wordEndFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
                              1]) / maxClipDuration * FRAMES_PER_VIDEO)
-    train_val_word_durations[i] = wordEndFrame - wordStartFrame + 1
+    train_val_word_metadata['startFrame'][i] = wordStartFrame
+    train_val_word_metadata['endFrame'][i] = wordEndFrame
+    train_val_word_metadata['wordDuration'][i] = wordEndFrame - wordStartFrame + 1
 
-attributes['train_val_word_durations'] = train_val_word_durations
+attributes['train_val_word_metadata'] = train_val_word_metadata
 np.save("attributes", attributes)
 
-si_word_durations = np.zeros(len(si_dirs), dtype=int)
+si_word_metadata = {}
+si_word_metadata['startFrame'] = np.zeros(len(si_dirs), dtype=int)
+si_word_metadata['endFrame'] = np.zeros(len(si_dirs), dtype=int)
+si_word_metadata['wordDuration'] = np.zeros(len(si_dirs), dtype=int)
 for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(si_dirs, si_word_numbers, si_word_idx)), total=len(si_dirs)):
     alignFile = vidDir[:-1] + '.align'
     # Word-Time data
@@ -155,9 +163,11 @@ for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(si_dirs, si_word_
                                 0]) / maxClipDuration * FRAMES_PER_VIDEO)
     wordEndFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
                              1]) / maxClipDuration * FRAMES_PER_VIDEO)
-    si_word_durations[i] = wordEndFrame - wordStartFrame + 1
+    si_word_metadata['startFrame'][i] = wordStartFrame
+    si_word_metadata['endFrame'][i] = wordEndFrame
+    si_word_metadata['wordDuration'][i] = wordEndFrame - wordStartFrame + 1
 
-attributes['si_word_durations'] = si_word_durations
+attributes['si_word_metadata'] = si_word_metadata
 np.save("attributes", attributes)
 
 
@@ -165,7 +175,24 @@ np.save("attributes", attributes)
 # ATTR - Head pose estimations
 ########################################
 
-# Creating fileNamesList.txt
+# # EXTRACT FRAMES FROM VIDEO USING FFMPEG
+# for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(dirs, word_numbers, word_idx)), total=len(dirs)):
+#     makeVideos = False
+#     frameFiles = sorted(glob.glob(os.path.join(vidDir, '*Frame*.jpg')))
+#     if len(frameFiles) != 75:
+#         makeVideos = True
+#     elif frameFiles[-1].split('/')[-1].split('.')[0][-2:] == '75':
+#         makeVideos = True
+#     if makeVideos:
+#         print("Extracting from", vidDir)
+#         command = "ffmpeg -i " + vidDir[:-1] + ".mpg -y -an -qscale 0 -f image2 " + vidDir[:-1] + '/' +  vidDir.split('/')[-2] + "Frame%02d.jpg"
+#         os.system(command)
+#         for num in range(75):
+#             command = "mv " + vidDir[:-1] + '/' +  vidDir.split('/')[-2] + "Frame{0:02d}.jpg".format(num+1) + " " +  vidDir[:-1] + '/' +  vidDir.split('/')[-2] + "Frame{0:02d}.jpg".format(num)
+#             print("Renaming", num+1, "to", num)
+#             ret = os.system(command)
+
+# CREATING fileNamesList.txt
 
 # TRAIN_VAL
 train_val_frame_file_names = []
@@ -227,26 +254,112 @@ with open("frame_names_list_si.txt", 'w') as f:
 
 '''
 cd /home/voletiv/GitHubRepos/gazr/build
-./benchmark_head_pose_estimation_multiple_frames ../../lipreading-in-the-wild-experiments/shape-predictor/shape_predictor_68_face_landmarks.dat ../../zero-shot-learning-experiments/GRIDcorpus/frame_names_list_train_val.txt > head_poses_train_val.txt
-./benchmark_head_pose_estimation_multiple_frames ../../lipreading-in-the-wild-experiments/shape-predictor/shape_predictor_68_face_landmarks.dat ../../zero-shot-learning-experiments/GRIDcorpus/frame_names_list_si.txt > head_poses_si.txt
+./gazr_benchmark_head_pose_multiple_frames ../../lipreading-in-the-wild-experiments/shape-predictor/shape_predictor_68_face_landmarks.dat ../../zero-shot-learning-experiments/GRIDcorpus/frame_names_list_train_val.txt > head_poses_train_val.txt
+./gazr_benchmark_head_pose_multiple_frames ../../lipreading-in-the-wild-experiments/shape-predictor/shape_predictor_68_face_landmarks.dat ../../zero-shot-learning-experiments/GRIDcorpus/frame_names_list_si.txt > head_poses_si.txt
 '''
 
 # TRAIN_VAL
-train_val_head_poses = []
+train_val_head_poses = np.zeros((np.sum(train_val_word_durations), 3))
+# train_val_head_pose_lines = []
+idx = -1
+with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_00.txt', 'r') as f:
+    for line in f:
+        if 'Head pose' in line:
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
+with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_01.txt', 'r') as f:
+    for line in f:
+        if 'Head pose' in line:
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
+with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_02.txt', 'r') as f:
+    for line in f:
+        if 'Head pose' in line:
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
+with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_03.txt', 'r') as f:
+    for line in f:
+        if 'Head pose' in line:
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
+with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_04.txt', 'r') as f:
+    for line in f:
+        if 'Head pose' in line:
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
 with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val.txt', 'r') as f:
     for line in f:
         if 'Head pose' in line:
-            train_val_head_poses.append(line)
+            idx += 1
+            # train_val_head_pose_lines.append(line)
+            train_val_head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+            train_val_head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+            train_val_head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+
+# Find the index of the first unfilled row in poses
+for i, pose in enumerate(train_val_head_poses):
+    if np.all(pose == np.array([0, 0, 0])):
+            print(i)
+            break
+# 306216
+
+# Find the index in train_val_dirs, train_val_word_numbers
+np.where(np.cumsum(train_val_word_durations) == i)
+
+
+
+# Check entries
+idx = -1
+r = read_txt_files_line_by_line(word='Estimating')
+for train_val_dirs_index in tqdm.tqdm(range(len(train_val_dirs))):
+    duration = train_val_word_durations[train_val_dirs_index]
+    for frameNumber in range(duration):
+        idx += 1
+        line = next(r)
+        if train_val_dirs[train_val_dirs_index] not in line:
+            raise KeyboardInterrupt
+# train_val_dirs_index = 32135
+# idx = 272852
+
+read_txt_files_line_range(word='Estimating', start_idx=272840, stop_idx=272853):
+
+
+
+
+
 
 attributes['train_val_head_poses'] = train_val_head_poses
 np.save("attributes", attributes)
 
 # SI
+si_head_poses_frame_names = []
 si_head_poses = []
 with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_si.txt', 'r') as f:
-    for line in f:
-        if 'Head pose' in line:
-            si_head_poses.append(line)
+    for l, line in enumerate(f):
+        if l == 0:
+            continue
+        if 'Estimating' in line:
+            si_head_poses_frame_names.append(line)
 
 attributes['si_head_poses'] = si_head_poses
 np.save("attributes", attributes)

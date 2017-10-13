@@ -117,6 +117,7 @@ train_val_one_hot_words = all_vars["train_val_LSTM256_one_hot_words"]
 si_features = all_vars["si_LSTM256_features"]
 si_one_hot_words = all_vars["si_LSTM256_one_hot_words"]
 
+
 ########################################
 # Split into train and test (OOV) data
 # EMBARRASSINGLY SIMPLE LEARNING
@@ -271,6 +272,66 @@ plt.xlabel("Number of words in the training vocabulary, out of 50")
 plt.ylabel("Accuracy")
 plt.title("ZSL Speaker-Independent accuracies on GRIDcorpus")
 plt.show()
+
+
+
+########################################
+# Acc comparison
+########################################
+
+LSTM64_accs = np.load('grid_embedding_LSTM64_accs.npy').item()
+train_num_of_words_list = LSTM64_accs['train_num_of_words_list']
+oov_accs_mean_64 = LSTM64_accs['word2vec']['oov_accs_mean']
+oov_accs_std_64 = LSTM64_accs['word2vec']['oov_accs_std']
+si_iv_accs_mean_64 = LSTM64_accs['word2vec']['si_iv_accs_mean']
+si_iv_accs_std_64 = LSTM64_accs['word2vec']['si_iv_accs_std']
+si_oov_accs_mean_64 = LSTM64_accs['word2vec']['si_oov_accs_mean']
+si_oov_accs_std_64 = LSTM64_accs['word2vec']['si_oov_accs_std']
+
+syncnet_accs = np.load('grid_embedding_syncnet_accs.npy').item()
+oov_accs_mean_syncnet = syncnet_accs['word2vec']['oov_accs_mean']
+oov_accs_std_syncnet = syncnet_accs['word2vec']['oov_accs_std']
+si_iv_accs_mean_syncnet = syncnet_accs['word2vec']['si_iv_accs_mean']
+si_iv_accs_std_syncnet = syncnet_accs['word2vec']['si_iv_accs_std']
+si_oov_accs_mean_syncnet = syncnet_accs['word2vec']['si_oov_accs_mean']
+si_oov_accs_std_syncnet = syncnet_accs['word2vec']['si_oov_accs_std']
+
+plt.errorbar(train_num_of_words_list, oov_accs_mean_64,
+             yerr=oov_accs_std_64, label='oov-word2vec-LSTM64',
+             linestyle='--', fmt='o', capsize=3, c='C0')
+
+plt.errorbar(train_num_of_words_list, oov_accs_mean_syncnet,
+             yerr=oov_accs_std_syncnet, label='oov-word2vec-syncnet',
+             linestyle='--', fmt='o', capsize=3, c='C1')
+
+plt.errorbar(train_num_of_words_list, si_iv_accs_mean_64,
+             yerr=si_iv_accs_std_64, label='si-iv-word2vec-LSTM64',
+             linestyle=':', fmt='o', capsize=3, c='C0')
+
+plt.errorbar(train_num_of_words_list, si_iv_accs_mean_syncnet,
+             yerr=si_iv_accs_std_syncnet, label='si-iv-word2vec-syncnet',
+             linestyle=':', fmt='o', capsize=3, c='C1')
+
+plt.errorbar(train_num_of_words_list, si_oov_accs_mean_64,
+             yerr=si_oov_accs_std_64, label='si-oov-word2vec-syncnet',
+             linestyle='-', fmt='o', capsize=3, c='C0')
+
+plt.errorbar(train_num_of_words_list, si_oov_accs_mean_syncnet,
+             yerr=si_oov_accs_std_syncnet, label='si-oov-word2vec-syncnet',
+             linestyle='-', fmt='o', capsize=3, c='C1')
+
+plt.legend(fontsize=11, loc='upper right')
+plt.ylim([0., 1.])
+plt.gca().yaxis.grid(True, alpha=0.5)
+plt.xlabel("Number of words in the training vocabulary, out of 50")
+plt.ylabel("Accuracy")
+plt.title("ZSL Speaker-Independent accuracies on GRIDcorpus")
+plt.show()
+
+
+
+
+
 
 
 # ########################################
