@@ -7,6 +7,7 @@ import numpy as np
 import tqdm
 
 from grid_functions import *
+from grid_attributes_params import *
 
 def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
                                    lipreader_preds_correct_or_wrong,
@@ -73,117 +74,40 @@ def load_detector_and_predictor(verbose=False):
             SHAPE_PREDICTOR_PATH, "(load_detector_and_predictor)\n\n")
 
 
-def read_txt_files_line_by_line(word='Estimating', stop_idx=None):
-    while 1:
-        idx = -1
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_00.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_01.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_02.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_03.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_04.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
-        with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val.txt', 'r') as f:
-            for line in f:
-                if word in line:
-                    idx += 1
-                    # train_val_head_pose_lines.append(line)
-                    # if idx == stop_idx:
-                    #     return line
-                    yield line
+def read_head_poses(mode='train_val', num=10):
+    # HEAD POSES
+    head_poses = np.zeros((num, 3))
+    lines_gen = gen_txt_files_line_by_line(mode=mode, word="Head pose")
+    for idx in range(num):
+        line = next(lines_gen)
+        head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+        head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
+        head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
+    # Return
+    lines_gen.close()
+    return head_poses
 
 
-def read_txt_files_line_range(word='Estimating', start_idx=0, stop_idx=3):
+def read_txt_files_line_range(mode='train_val', start_idx=0, stop_idx=3, word='Estimating head pose'):
     lines = []
-    idx = -1
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_00.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_01.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_02.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_03.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val_04.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
-    with open('/home/voletiv/GitHubRepos/gazr/build/head_poses_train_val.txt', 'r') as f:
-        for line in f:
-            if word in line:
-                idx += 1
-                # train_val_head_pose_lines.append(line)
-                if idx >= stop_idx:
-                    return lines
-                if idx >= start_idx:
-                    lines.append(line)
+    lines_gen = gen_txt_files_line_by_line(mode=mode, word=word)
+    for idx in range(stop_idx):
+        line = next(lines_gen)
+        if idx >= start_idx:
+            lines.append(line)
+    lines_gen.close()
+    return lines
 
 
-
+def gen_txt_files_line_by_line(mode='train_val', word='Estimating head pose'):
+    if mode == 'train_val':
+        txt_files = TRAIN_VAL_HEAD_POSE_TXT_FILES
+    elif mode == 'si':
+        txt_files = SI_HEAD_POSE_TXT_FILES
+    while 1:
+        for file in txt_files:
+            with open(file, 'r') as f:
+                for line in f:
+                    if word in line:
+                        yield line
 
