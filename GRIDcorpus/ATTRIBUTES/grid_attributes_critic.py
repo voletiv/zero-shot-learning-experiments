@@ -17,15 +17,104 @@ grid_attributes_dict = np.load(os.path.join(GRID_ATTR_DIR, 'grid_attributes_dict
 # grid_attributes_dict['train_val_word_metadata'].keys()
 # dict_keys(['startFrame', 'endFrame', 'wordDuration'])
 
+train_val_dirs = grid_attributes_dict['train_val_dirs']
+train_val_word_numbers = grid_attributes_dict['train_val_word_numbers']
+si_dirs = grid_attributes_dict['si_dirs']
+si_word_numbers = grid_attributes_dict['si_word_numbers']
+
+#############################################################
+# LOAD TRAINDIRS, VALDIRS, SI DIRS
+#############################################################
+
+# # TRAIN AND VAL
+# trainValSpeakersList = [1, 2, 3, 4, 5, 6, 7, 9]
+# valSplit = 0.1
+# trainDirs = []
+# valDirs = []
+# np.random.seed(29)
+# # For each speaker
+# for speaker in sorted(tqdm.tqdm(trainValSpeakersList)):
+#     speakerDir = os.path.join(GRID_DATA_DIR, 's' + '{0:02d}'.format(speaker))
+#     # List of all videos for each speaker
+#     vidDirs = sorted(glob.glob(os.path.join(speakerDir, '*/')))
+#     totalNumOfImages = len(vidDirs)
+#     # To shuffle directories before splitting into train and validate
+#     fullListIdx = list(range(totalNumOfImages))
+#     np.random.shuffle(fullListIdx)
+#     # Append training directories
+#     for i in fullListIdx[:int((1 - valSplit) * totalNumOfImages)]:
+#         trainDirs.append(vidDirs[i])
+#     # Append val directories
+#     for i in fullListIdx[int((1 - valSplit) * totalNumOfImages):]:
+#         valDirs.append(vidDirs[i])
+
+# # TRAIN
+# train_dirs_binary = np.array([d in trainDirs for d in train_val_dirs])
+# grid_attributes_dict['train_dirs_binary'] = train_dirs_binary
+
+# # VAL
+# val_dirs_binary = np.array([d in valDirs for d in train_val_dirs])
+# grid_attributes_dict['val_dirs_binary'] = val_dirs_binary
+
+# # SI
+# si_dirs_binary = np.array(['s10' in d for d in train_val_dirs])
+
+# train_dirs = train_val_dirs[train_dirs_binary]
+# grid_attributes_dict['train_dirs'] = train_dirs
+
+# val_dirs = train_val_dirs[val_dirs_binary]
+# grid_attributes_dict['val_dirs'] = val_dirs
+
+# for i, d in enumerate(train_val_dirs):
+#     if si_dirs_binary[i]:
+#         si_dirs = np.append(si_dirs, d)
+
+train_dirs = grid_attributes_dict['train_dirs']
+train_dirs_binary = grid_attributes_dict['train_dirs_binary']
+val_dirs = grid_attributes_dict['val_dirs']
+val_dirs_binary = grid_attributes_dict['val_dirs_binary']
+si_dirs = grid_attributes_dict['si_dirs']
+si_dirs_binary = grid_attributes_dict['si_dirs_binary']
+
 #############################################################
 # LOAD CORRECT_OR_NOT
 #############################################################
 
-lipreader_preds_wordidx_and_correctornot = np.load(os.path.join(GRID_ATTR_DIR, 'lipreader_preds_wordidx_and_correctornot.npy')).item()
-train_val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctornot['train_val_lipreader_pred_word_idx']
-train_val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctornot['train_val_lipreader_preds_correct_or_wrong']
-si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctornot['si_lipreader_pred_word_idx']
-si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctornot['si_lipreader_preds_correct_or_wrong']
+# lipreader_preds = np.load(os.path.join(GRID_DIR, 'lipreader_preds.npy')).item()
+
+# train_val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['train_val_lipreader_pred_word_idx']
+# train_val_lipreader_preds_correct_or_wrong = lipreader_preds['train_val_lipreader_preds_correct_or_wrong']
+# si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si1314_lipreader_pred_word_idx']
+# si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si1314_lipreader_preds_correct_or_wrong']
+
+# train_lipreader_preds_word_idx = train_val_lipreader_preds_word_idx[train_dirs_binary]
+# train_lipreader_preds_correct_or_wrong = train_val_lipreader_preds_correct_or_wrong[train_dirs_binary]
+
+# val_lipreader_preds_word_idx = train_val_lipreader_preds_correct_or_wrong[val_dirs_binary]
+# val_lipreader_preds_correct_or_wrong = train_val_lipreader_preds_correct_or_wrong[val_dirs_binary]
+
+# for siwi, sicw in zip(train_val_lipreader_preds_word_idx[si_dirs_binary], train_val_lipreader_preds_correct_or_wrong[si_dirs_binary]):
+#     si_lipreader_preds_word_idx = np.append(si_lipreader_preds_word_idx, siwi)
+#     si_lipreader_preds_correct_or_wrong = np.append(si_lipreader_preds_correct_or_wrong, sicw)
+
+# lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_word_idx'] = train_lipreader_preds_word_idx
+# lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_word_idx'] = val_lipreader_preds_word_idx
+# lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx'] = si_lipreader_preds_word_idx
+# lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_correct_or_wrong'] = train_lipreader_preds_correct_or_wrong
+# lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong'] = val_lipreader_preds_correct_or_wrong
+# lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong'] = si_lipreader_preds_correct_or_wrong
+
+# np.save('lipreader_preds_wordidx_and_correctorwrong', lipreader_preds_wordidx_and_correctorwrong)
+
+lipreader_preds_wordidx_and_correctorwrong = np.load('lipreader_preds_wordidx_and_correctorwrong.npy').item()
+
+train_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_word_idx']
+val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_word_idx']
+si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx']
+
+train_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_correct_or_wrong']
+val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong']
+si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']
 
 ########################################
 # ATTRIBUTES
@@ -45,50 +134,131 @@ si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctornot['
 # MAKE ATTRIBUTES ARRAY: n x a
 #############################################################
 
-train_val_num_of_rows = len(grid_attributes_dict['train_val_male_or_not'])
-si_num_of_rows = len(grid_attributes_dict['si_male_or_not'])
+train_num_of_rows = len(train_dirs)
+val_num_of_rows = len(val_dirs)
+si_num_of_rows = len(si_dirs)
 
-train_val_word_metadata = grid_attributes_dict['train_val_word_metadata']
-
-train_val_grid_attributes = np.empty((train_val_num_of_rows, 0))
+train_grid_attributes = np.empty((train_num_of_rows, 0))
+val_grid_attributes = np.empty((val_num_of_rows, 0))
 si_grid_attributes = np.empty((si_num_of_rows, 0))
 
-# Speaker Idenity
+# SPEAKER IDENTITY
 train_val_speaker_identity = grid_attributes_dict['train_val_speaker_identity']
-train_val_grid_attributes = np.hstack((train_val_grid_attributes, np.reshape(np.array(train_val_speaker_identity, dtype=float), (train_val_num_of_rows, 1))))
+# Train
+train_speaker_identity = train_val_speaker_identity[train_dirs_binary]
+train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_speaker_identity, dtype=float), (train_num_of_rows, 1))))
+# Val
+val_speaker_identity = train_val_speaker_identity[val_dirs_binary]
+val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_speaker_identity, dtype=float), (val_num_of_rows, 1))))
+# Si
 si_speaker_identity = grid_attributes_dict['si_speaker_identity']
+si_speaker_identity_from_trainval = train_val_speaker_identity[si_dirs_binary]
+for itv in si_speaker_identity_from_trainval:
+    si_speaker_identity = np.append(si_speaker_identity, itv)
+
 si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_speaker_identity, dtype=float), (si_num_of_rows, 1))))
 
-# Male or not
+# MALE OR NOT
 train_val_male_or_not = grid_attributes_dict['train_val_male_or_not']
-train_val_grid_attributes = np.hstack((train_val_grid_attributes, np.reshape(np.array(train_val_male_or_not, dtype=float), (train_val_num_of_rows, 1))))
+# Train
+train_male_or_not = train_val_male_or_not[train_dirs_binary]
+train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_male_or_not, dtype=float), (train_num_of_rows, 1))))
+# Val
+val_male_or_not = train_val_male_or_not[val_dirs_binary]
+val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_male_or_not, dtype=float), (val_num_of_rows, 1))))
+# Si
 si_male_or_not = grid_attributes_dict['si_male_or_not']
+si_male_or_not_from_trainval = train_val_male_or_not[si_dirs_binary]
+for itv in si_male_or_not_from_trainval:
+    si_male_or_not = np.append(si_male_or_not, itv)
+
 si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_male_or_not, dtype=float), (si_num_of_rows, 1))))
 
-# Duration of word
+# WORD DURATION
 train_val_word_durations = grid_attributes_dict['train_val_word_durations']
-train_val_grid_attributes = np.hstack((train_val_grid_attributes, np.reshape(np.array(train_val_word_durations, dtype=float)/np.max(train_val_word_durations), (train_val_num_of_rows, 1))))
+# Train
+train_word_durations = train_val_word_durations[train_dirs_binary]
+train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_word_durations, dtype=float), (train_num_of_rows, 1))))
+# Val
+val_word_durations = train_val_word_durations[val_dirs_binary]
+val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_word_durations, dtype=float), (val_num_of_rows, 1))))
+# Si
 si_word_durations = grid_attributes_dict['si_word_durations']
-si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_word_durations, dtype=float)/np.max(si_word_durations), (si_num_of_rows, 1))))
+si_word_durations_from_trainval = train_val_word_durations[si_dirs_binary]
+for itv in si_word_durations_from_trainval:
+    si_word_durations = np.append(si_word_durations, itv)
 
-# Bilabial or not
-train_val_grid_attributes = np.hstack((train_val_grid_attributes, np.reshape(np.array(grid_attributes_dict['train_val_bilabial_or_not'], dtype=float), (train_val_num_of_rows, 1))))
-si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(grid_attributes_dict['si_bilabial_or_not'], dtype=float), (si_num_of_rows, 1))))
+si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_word_durations, dtype=float), (si_num_of_rows, 1))))
+
+# BILABIAL OR NOT
+train_val_bilabial_or_not = grid_attributes_dict['train_val_bilabial_or_not']
+# Train
+train_bilabial_or_not = train_val_bilabial_or_not[train_dirs_binary]
+train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_bilabial_or_not, dtype=float), (train_num_of_rows, 1))))
+# Val
+val_bilabial_or_not = train_val_bilabial_or_not[val_dirs_binary]
+val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_bilabial_or_not, dtype=float), (val_num_of_rows, 1))))
+# Si
+si_bilabial_or_not = grid_attributes_dict['si_bilabial_or_not']
+si_bilabial_or_not_from_trainval = train_val_word_durations[si_dirs_binary]
+for itv in si_bilabial_or_not_from_trainval:
+    si_bilabial_or_not = np.append(si_bilabial_or_not, itv)
+
+si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_bilabial_or_not, dtype=float), (si_num_of_rows, 1))))
+
+
+
+np.save('train_grid_attributes', train_grid_attributes)
+np.save('val_grid_attributes', val_grid_attributes)
+np.save('si_grid_attributes', si_grid_attributes)
 
 #############################################################
 # PLOTS OF ACCURACY WITH ATTRIBUTES
 #############################################################
 
-train_val_dirs = grid_attributes_dict['train_val_dirs']
-si_dirs = grid_attributes_dict['si_dirs']
-
-# Speaker Idenity
+# SPEAKER IDENTITY
 for speaker in TRAIN_VAL_SPEAKERS_LIST:
     speaker_dir = "s{0:02d}".format(speaker)
-    speaker_idx = [speaker_dir in dirs_list_element for dirs_list_element in train_val_dirs]
-    speaker_correctornot = train_val_lipreader_preds_correct_or_wrong[speaker_idx]
-    speaker_acc = np.sum(speaker_correctornot)/len(speaker_correctornot)
-    print(speaker, speaker_acc)
+    # Train
+    train_speaker_binary = [speaker_dir in train_dir for train_dir in train_dirs]
+    train_speaker_correctornot = train_lipreader_preds_correct_or_wrong[train_speaker_binary]
+    train_speaker_acc = np.sum(train_speaker_correctornot)/len(train_speaker_correctornot)
+    # Val
+    val_speaker_binary = [speaker_dir in val_dir for val_dir in val_dirs]
+    val_speaker_correctornot = val_lipreader_preds_correct_or_wrong[val_speaker_binary]
+    val_speaker_acc = np.sum(val_speaker_correctornot)/len(val_speaker_correctornot)
+    print(speaker, train_speaker_acc, val_speaker_acc)
+
+# 1 0.902190051967 0.893333333333
+# 2 0.885916016351 0.876666666667
+# 3 0.947741694662 0.943333333333
+# 4 0.905821282907 0.895
+# 5 0.932332220986 0.943333333333
+# 6 0.940703329592 0.945
+# 7 0.940449438202 0.946127946128
+# 10 nan nan
+
+
+# BILABIAL OR NOT
+
+# Train
+train_bilabial_acc = np.sum(train_lipreader_preds_correct_or_wrong[train_bilabial_or_not])/np.sum(train_bilabial_or_not)
+# 0.97038413878562579
+train_not_bilabial_acc = np.sum(train_lipreader_preds_correct_or_wrong[np.logical_not(train_bilabial_or_not)])/np.sum(np.logical_not(train_bilabial_or_not))
+# 0.90891236624678318
+
+# Val
+val_bilabial_acc = np.sum(val_lipreader_preds_correct_or_wrong[val_bilabial_or_not])/np.sum(val_bilabial_or_not)
+# 0.96752519596864506
+val_not_bilabial_acc = np.sum(val_lipreader_preds_correct_or_wrong[np.logical_not(val_bilabial_or_not)])/np.sum(np.logical_not(val_bilabial_or_not))
+# 0.90760375643744318
+
+# Si
+si_bilabial_acc = np.sum(si_lipreader_preds_correct_or_wrong[si_bilabial_or_not])/np.sum(si_bilabial_or_not)
+# 0.37346693921080698
+si_not_bilabial_acc = np.sum(si_lipreader_preds_correct_or_wrong[np.logical_not(si_bilabial_or_not)])/np.sum(np.logical_not(si_bilabial_or_not))
+# 0.35498248965297674
+
 
 #############################################################
 # POSE
