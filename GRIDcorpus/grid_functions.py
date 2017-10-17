@@ -46,8 +46,7 @@ def make_GRIDcorpus_features_and_one_hot_words(dirs,
         # All mouth file names of video
         mouthFiles = sorted(glob.glob(os.path.join(vidDir, '*Mouth*.jpg')))
         # Note the file names of the word
-        wordMouthFiles = mouthFiles[
-            wordStartFrame:wordEndFrame + 1]
+        wordMouthFiles = mouthFiles[wordStartFrame:wordEndFrame + 1]
         # Initialize the array of images for this word
         wordImages = np.zeros((1, FRAMES_PER_WORD, NUM_OF_MOUTH_PIXELS))
         # For each frame of this word

@@ -1,6 +1,7 @@
 # GET GRIDCORPUS ATTRIBUTES
 
 from grid_attributes_functions import *
+from grid_functions import *
 
 attributes = {}
 
@@ -46,14 +47,14 @@ for i in range(len(train_val_word_idx)):
     train_val_bilabial_or_not[i] = GRID_VOCAB_FULL[train_val_word_idx[i]] in bilabial_words
 
 attributes['train_val_bilabial_or_not'] = train_val_bilabial_or_not
-np.save("grid_attributes", attributes)
+np.save("grid_attributes_dict", attributes)
 
 si_bilabial_or_not = np.zeros(len(si_dirs), dtype=bool)
 for i in range(len(si_word_idx)):
     si_bilabial_or_not[i] = GRID_VOCAB_FULL[si_word_idx[i]] in bilabial_words
 
 attributes['si_bilabial_or_not'] = si_bilabial_or_not
-np.save("grid_attributes", attributes)
+np.save("grid_attributes_dict", attributes)
 
 ########################################
 # ATTR - speaker identity
@@ -73,7 +74,7 @@ np.save("grid_attributes", attributes)
 # train_val_speaker_identity = np.array(train_val_speaker_identity, dtype=int)
 
 # attributes['train_val_speaker_identity'] = train_val_speaker_identity
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
 # si_speaker_identity = []
 # for speaker in tqdm.tqdm(sorted((SI_SPEAKERS_LIST))):
@@ -89,9 +90,9 @@ np.save("grid_attributes", attributes)
 # si_speaker_identity = np.array(si_speaker_identity, dtype=int)
 
 # attributes['si_speaker_identity'] = si_speaker_identity
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
-attributes = np.load('grid_attributes.npy').item()
+attributes = np.load('grid_attributes_dict.npy').item()
 
 ########################################
 # SPEAKER MALE OR NOT
@@ -105,14 +106,14 @@ attributes = np.load('grid_attributes.npy').item()
 #     train_val_male_or_not[i] = attributes['train_val_speaker_identity'][i] in male_speakers
 
 # attributes['train_val_male_or_not'] = train_val_male_or_not
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
 # si_male_or_not = np.zeros(len(si_dirs), dtype=bool)
 # for i in range(len(si_word_idx)):
 #     si_male_or_not[i] = attributes['si_speaker_identity'][i] in male_speakers
 
 # attributes['si_male_or_not'] = si_male_or_not
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
 ########################################
 # Load LipReader
@@ -124,37 +125,37 @@ LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 # LipReader predictions
 ########################################
 
-# lipreader_preds = {}
+lipreader_preds = {}
 
-# train_val_lipreader_pred_word_idx = np.zeros(len(train_val_dirs), dtype=int)
-# train_val_lipreader_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
-# make_LSTMlipreader_predictions(train_val_lipreader_pred_word_idx,
-#                                train_val_lipreader_preds_correct_or_wrong,
-#                                train_val_dirs,
-#                                train_val_word_numbers,
-#                                train_val_word_idx,
-#                                LSTMLipreaderModel,
-#                                GRID_VOCAB_FULL,
-#                                0)
+train_val_lipreader_pred_word_idx = np.zeros(len(train_val_dirs), dtype=int)
+train_val_lipreader_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
+make_LSTMlipreader_predictions(train_val_lipreader_pred_word_idx,
+                               train_val_lipreader_preds_correct_or_wrong,
+                               train_val_dirs,
+                               train_val_word_numbers,
+                               train_val_word_idx,
+                               LSTMLipreaderModel,
+                               GRID_VOCAB_FULL,
+                               0)
 
-# lipreader_preds['train_val_lipreader_pred_word_idx'] = train_val_lipreader_preds
-# lipreader_preds['train_val_lipreader_preds_correct_or_wrong'] = train_val_lipreader_preds_correct_or_wrong
-# np.save('lipreader_preds', lipreader_preds)
+lipreader_preds['train_val_lipreader_pred_word_idx'] = train_val_lipreader_preds
+lipreader_preds['train_val_lipreader_preds_correct_or_wrong'] = train_val_lipreader_preds_correct_or_wrong
+np.save('lipreader_preds', lipreader_preds)
 
-# si_lipreader_pred_word_idx = np.zeros(len(si_dirs), dtype=int)
-# si_lipreader_preds_correct_or_wrong = np.zeros(len(si_dirs), dtype=bool)
-# make_LSTMlipreader_predictions(si_lipreader_pred_word_idx,
-#                                si_lipreader_preds_correct_or_wrong,
-#                                si_dirs,
-#                                si_word_numbers,
-#                                si_word_idx,
-#                                LSTMLipreaderModel,
-#                                GRID_VOCAB_FULL,
-#                                0)
+si_lipreader_pred_word_idx = np.zeros(len(si_dirs), dtype=int)
+si_lipreader_preds_correct_or_wrong = np.zeros(len(si_dirs), dtype=bool)
+make_LSTMlipreader_predictions(si_lipreader_pred_word_idx,
+                               si_lipreader_preds_correct_or_wrong,
+                               si_dirs,
+                               si_word_numbers,
+                               si_word_idx,
+                               LSTMLipreaderModel,
+                               GRID_VOCAB_FULL,
+                               0)
 
-# lipreader_preds['si_lipreader_pred_word_idx'] = si_lipreader_pred_word_idx
-# lipreader_preds['si_lipreader_preds_correct_or_wrong'] = si_lipreader_preds_correct_or_wrong
-# np.save('lipreader_preds', lipreader_preds)
+lipreader_preds['si_lipreader_pred_word_idx'] = si_lipreader_pred_word_idx
+lipreader_preds['si_lipreader_preds_correct_or_wrong'] = si_lipreader_preds_correct_or_wrong
+np.save('lipreader_preds', lipreader_preds)
 
 lipreader_preds = np.load('lipreader_preds.npy').item()
 
@@ -187,7 +188,7 @@ lipreader_preds = np.load('lipreader_preds.npy').item()
 #     train_val_word_metadata['wordDuration'][i] = wordEndFrame - wordStartFrame + 1
 
 # attributes['train_val_word_metadata'] = train_val_word_metadata
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
 # si_word_metadata = {}
 # si_word_metadata['startFrame'] = np.zeros(len(si_dirs), dtype=int)
@@ -213,9 +214,9 @@ lipreader_preds = np.load('lipreader_preds.npy').item()
 #     si_word_metadata['wordDuration'][i] = wordEndFrame - wordStartFrame + 1
 
 # attributes['si_word_metadata'] = si_word_metadata
-# np.save("grid_attributes", attributes)
+# np.save("grid_attributes_dict", attributes)
 
-attributes = np.load('grid_attributes.npy').item()
+attributes = np.load('grid_attributes_dict.npy').item()
 
 train_val_word_metadata = attributes['train_val_word_metadata']
 train_val_word_durations = train_val_word_metadata['wordDuration']
@@ -314,15 +315,14 @@ cd /home/voletiv/GitHubRepos/gazr/build
 # READ ALL POSES
 train_val_head_poses = read_head_poses(mode='train_val', num=np.cumsum(train_val_word_durations)[-1])
 
-
 attributes['train_val_head_poses'] = train_val_head_poses
-np.save("grid_attributes", attributes)
+np.save("grid_attributes_dict", attributes)
 
 # SI
 si_head_poses = read_head_poses(mode='si', num=np.cumsum(si_word_durations)[-1])
 
 attributes['si_head_poses'] = si_head_poses
-np.save("grid_attributes", attributes)
+np.save("grid_attributes_dict", attributes)
 
 
 # # Find the index of the first unfilled row in poses

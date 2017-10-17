@@ -7,12 +7,11 @@ import numpy as np
 import tqdm
 
 from grid_attributes_params import *
-from grid_functions import *
 
 
 def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
                                    lipreader_preds_correct_or_wrong,
-                                   word_durations,
+                                   # word_durations,
                                    dirs,
                                    word_numbers,
                                    word_idx,
@@ -22,7 +21,7 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
     # dirs = train_val_dirs
     # word_numbers = train_val_word_numbers
     # word_idx = train_val_word_idx
-    detector, predictor = load_detector_and_predictor()
+    # detector, predictor = load_detector_and_predictor()
     # For each data point
     for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(dirs, word_numbers, word_idx)), total=len(dirs)):
         if i < startNum:
@@ -43,8 +42,8 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
                                     0]) / maxClipDuration * FRAMES_PER_VIDEO)
         wordEndFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
                                  1]) / maxClipDuration * FRAMES_PER_VIDEO)
-        # Word duration
-        word_durations[i] = wordEndFrame - wordStartFrame + 1
+        # # Word duration
+        # word_durations[i] = wordEndFrame - wordStartFrame + 1
         # All mouth file names of video
         mouthFiles = sorted(glob.glob(os.path.join(vidDir, '*Mouth*.jpg')))
         # Note the file names of the word
@@ -81,7 +80,7 @@ def read_head_poses(mode='train_val', num=10):
     lines_gen = gen_txt_files_line_by_line(mode=mode, word="Head pose")
     for idx in range(num):
         line = next(lines_gen)
-        head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-2])
+        head_poses[idx, 0] = float(line.rstrip().split()[-3][1:-1])
         head_poses[idx, 1] = float(line.rstrip().split()[-2][:-1])
         head_poses[idx, 2] = float(line.rstrip().split()[-1][:-1])
     # Return
