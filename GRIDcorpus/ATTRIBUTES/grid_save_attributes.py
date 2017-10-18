@@ -128,7 +128,7 @@ si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong
 
 # Bilabial or not
 
-# Pose
+# Pose (3)
 
 #############################################################
 # MAKE ATTRIBUTES ARRAY: n x a
@@ -151,7 +151,7 @@ train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(tr
 val_speaker_identity = train_val_speaker_identity[val_dirs_binary]
 val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_speaker_identity, dtype=float), (val_num_of_rows, 1))))
 # Si
-si_speaker_identity = grid_attributes_dict['si_speaker_identity']
+si_speaker_identity = grid_attributes_dict['si1314_speaker_identity']
 si_speaker_identity_from_trainval = train_val_speaker_identity[si_dirs_binary]
 for itv in si_speaker_identity_from_trainval:
     si_speaker_identity = np.append(si_speaker_identity, itv)
@@ -167,7 +167,7 @@ train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(tr
 val_male_or_not = train_val_male_or_not[val_dirs_binary]
 val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_male_or_not, dtype=float), (val_num_of_rows, 1))))
 # Si
-si_male_or_not = grid_attributes_dict['si_male_or_not']
+si_male_or_not = grid_attributes_dict['si1314_male_or_not']
 si_male_or_not_from_trainval = train_val_male_or_not[si_dirs_binary]
 for itv in si_male_or_not_from_trainval:
     si_male_or_not = np.append(si_male_or_not, itv)
@@ -183,7 +183,7 @@ train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(tr
 val_word_durations = train_val_word_durations[val_dirs_binary]
 val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_word_durations, dtype=float), (val_num_of_rows, 1))))
 # Si
-si1314_word_durations = grid_attributes_dict['si_word_durations']
+si1314_word_durations = grid_attributes_dict['si1314_word_durations']
 si_word_durations = si1314_word_durations
 si_word_durations_from_trainval = train_val_word_durations[si_dirs_binary]
 for itv in si_word_durations_from_trainval:
@@ -200,7 +200,7 @@ train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(tr
 val_bilabial_or_not = train_val_bilabial_or_not[val_dirs_binary]
 val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_bilabial_or_not, dtype=float), (val_num_of_rows, 1))))
 # Si
-si_bilabial_or_not = grid_attributes_dict['si_bilabial_or_not']
+si_bilabial_or_not = grid_attributes_dict['si1314_bilabial_or_not']
 si_bilabial_or_not_from_trainval = train_val_word_durations[si_dirs_binary]
 for itv in si_bilabial_or_not_from_trainval:
     si_bilabial_or_not = np.append(si_bilabial_or_not, itv)
@@ -264,28 +264,29 @@ si_not_bilabial_acc = np.sum(si_lipreader_preds_correct_or_wrong[np.logical_not(
 # POSE
 #############################################################
 
-train_val_head_poses_per_frame_in_word = grid_attributes_dict['train_val_head_poses_per_frame_in_word']
-si_head_poses_per_frame_in_word = grid_attributes_dict['si_head_poses_per_frame_in_word']
+# train_val_head_poses_per_frame_in_word = grid_attributes_dict['train_val_head_poses_per_frame_in_word']
+# si1314_head_poses_per_frame_in_word = grid_attributes_dict['si1314_head_poses_per_frame_in_word']
 
-# Poses
-np.mean(train_val_head_poses_per_frame_in_word, axis=0)
-np.max(train_val_head_poses_per_frame_in_word, axis=0)
-np.argmax(train_val_head_poses_per_frame_in_word, axis=0)
+# # Poses
+# np.mean(train_val_head_poses_per_frame_in_word, axis=0)
+# np.max(train_val_head_poses_per_frame_in_word, axis=0)
+# np.argmax(train_val_head_poses_per_frame_in_word, axis=0)
 
-plt.subplot(131)
-plt.hist(train_val_head_poses_per_frame_in_word[:, 0], bins=20)
-plt.xlabel('X')
-plt.subplot(132)
-plt.hist(train_val_head_poses_per_frame_in_word[:, 1], bins=20)
-plt.xlabel('Y')
-plt.subplot(133)
-plt.hist(train_val_head_poses_per_frame_in_word[:, 2], bins=20)
-plt.xlabel('Z')
-plt.suptitle("Histograms of head pose values")
+# plt.subplot(131)
+# plt.hist(train_val_head_poses_per_frame_in_word[:, 0], bins=20)
+# plt.xlabel('X')
+# plt.subplot(132)
+# plt.hist(train_val_head_poses_per_frame_in_word[:, 1], bins=20)
+# plt.xlabel('Y')
+# plt.subplot(133)
+# plt.hist(train_val_head_poses_per_frame_in_word[:, 2], bins=20)
+# plt.xlabel('Z')
+# plt.suptitle("Histograms of head pose values")
 
 # MEAN AND RANGE OF HEAD POSES
-train_val_head_poses_per_frame_in_word[train_dirs_binary]
 # Train_Val
+train_val_head_poses_per_frame_in_word = grid_attributes_dict['train_val_head_poses_per_frame_in_word']
+train_val_word_durations = grid_attributes_dict['train_val_word_durations']
 train_val_word_durations_cum_sum = np.cumsum(train_val_word_durations)
 train_val_word_durations_cum_sum = np.append(0, train_val_word_durations_cum_sum)
 train_val_head_poses_means = np.empty((0, 3))
@@ -295,13 +296,42 @@ for i in range(len(train_val_dirs)):
     train_val_head_poses_means = np.vstack((train_val_head_poses_means, np.mean(head_poses, axis=0)))
     train_val_head_poses_ranges = np.vstack((train_val_head_poses_ranges, np.max(head_poses, axis=0) - np.min(head_poses, axis=0)))
 # Si_notfromtrainval
+si1314_head_poses_per_frame_in_word = grid_attributes_dict['si1314_head_poses_per_frame_in_word']
+si1314_word_durations = grid_attributes_dict['si1314_word_durations']
 si1314_word_durations_cum_sum = np.cumsum(si1314_word_durations)
 si1314_word_durations_cum_sum = np.append(0, si1314_word_durations_cum_sum)
 si1314_head_poses_means = np.empty((0, 3))
 si1314_head_poses_ranges = np.empty((0, 3))
-for i in range(len(train_val_dirs)):
-    head_poses = train_val_head_poses_per_frame_in_word[train_val_word_durations_cum_sum[i]:train_val_word_durations_cum_sum[i+1]]
-    train_val_head_poses_means = np.vstack((train_val_head_poses_means, np.mean(head_poses, axis=0)))
-    train_val_head_poses_ranges = np.vstack((train_val_head_poses_ranges, np.max(head_poses, axis=0) - np.min(head_poses, axis=0)))
+for i in range(len(si1314_dirs)):
+    head_poses = si1314_head_poses_per_frame_in_word[si1314_word_durations_cum_sum[i]:si1314_word_durations_cum_sum[i+1]]
+    si1314_head_poses_means = np.vstack((si1314_head_poses_means, np.mean(head_poses, axis=0)))
+    si1314_head_poses_ranges = np.vstack((si1314_head_poses_ranges, np.max(head_poses, axis=0) - np.min(head_poses, axis=0)))
+# Train
+train_head_poses_means = train_val_head_poses_means[train_dirs_binary]
+train_head_poses_ranges = train_val_head_poses_ranges[train_dirs_binary]
+# Val
+val_head_poses_means = train_val_head_poses_means[val_dirs_binary]
+val_head_poses_ranges = train_val_head_poses_ranges[val_dirs_binary]
+# Si
+si_head_poses_means = si1314_head_poses_means
+si_head_poses_means_from_trainval = train_val_head_poses_means[si_dirs_binary]
+si_head_poses_ranges = si1314_head_poses_ranges
+si_head_poses_ranges_from_trainval = train_val_head_poses_ranges[si_dirs_binary]
+for i in range(len(si_head_poses_means_from_trainval)):
+    si_head_poses_means = np.vstack((si_head_poses_means, si_head_poses_means_from_trainval[i]))
+    si_head_poses_ranges = np.vstack((si_head_poses_ranges, si_head_poses_ranges_from_trainval[i]))
+
+train_grid_attributes = np.hstack((train_grid_attributes, train_head_poses_means))
+train_grid_attributes = np.hstack((train_grid_attributes, train_head_poses_ranges))
+
+val_grid_attributes = np.hstack((val_grid_attributes, val_head_poses_means))
+val_grid_attributes = np.hstack((val_grid_attributes, val_head_poses_ranges))
+
+si_grid_attributes = np.hstack((si_grid_attributes, si_head_poses_means))
+si_grid_attributes = np.hstack((si_grid_attributes, si_head_poses_ranges))
+
+np.save('train_grid_attributes_matrix', train_grid_attributes)
+np.save('val_grid_attributes_matrix', val_grid_attributes)
+np.save('si_grid_attributes_matrix', si_grid_attributes)
 
 
