@@ -183,7 +183,8 @@ train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(tr
 val_word_durations = train_val_word_durations[val_dirs_binary]
 val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_word_durations, dtype=float), (val_num_of_rows, 1))))
 # Si
-si_word_durations = grid_attributes_dict['si_word_durations']
+si1314_word_durations = grid_attributes_dict['si_word_durations']
+si_word_durations = si1314_word_durations
 si_word_durations_from_trainval = train_val_word_durations[si_dirs_binary]
 for itv in si_word_durations_from_trainval:
     si_word_durations = np.append(si_word_durations, itv)
@@ -206,11 +207,10 @@ for itv in si_bilabial_or_not_from_trainval:
 
 si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_bilabial_or_not, dtype=float), (si_num_of_rows, 1))))
 
-
-
-np.save('train_grid_attributes', train_grid_attributes)
-np.save('val_grid_attributes', val_grid_attributes)
-np.save('si_grid_attributes', si_grid_attributes)
+# SAVE
+np.save('train_grid_attributes_matrix', train_grid_attributes)
+np.save('val_grid_attributes_matrix', val_grid_attributes)
+np.save('si_grid_attributes_matrix', si_grid_attributes)
 
 #############################################################
 # PLOTS OF ACCURACY WITH ATTRIBUTES
@@ -283,5 +283,25 @@ plt.hist(train_val_head_poses_per_frame_in_word[:, 2], bins=20)
 plt.xlabel('Z')
 plt.suptitle("Histograms of head pose values")
 
-# Take mean and range among frames as attributes
+# MEAN AND RANGE OF HEAD POSES
+train_val_head_poses_per_frame_in_word[train_dirs_binary]
+# Train_Val
+train_val_word_durations_cum_sum = np.cumsum(train_val_word_durations)
+train_val_word_durations_cum_sum = np.append(0, train_val_word_durations_cum_sum)
+train_val_head_poses_means = np.empty((0, 3))
+train_val_head_poses_ranges = np.empty((0, 3))
+for i in range(len(train_val_dirs)):
+    head_poses = train_val_head_poses_per_frame_in_word[train_val_word_durations_cum_sum[i]:train_val_word_durations_cum_sum[i+1]]
+    train_val_head_poses_means = np.vstack((train_val_head_poses_means, np.mean(head_poses, axis=0)))
+    train_val_head_poses_ranges = np.vstack((train_val_head_poses_ranges, np.max(head_poses, axis=0) - np.min(head_poses, axis=0)))
+# Si_notfromtrainval
+si1314_word_durations_cum_sum = np.cumsum(si1314_word_durations)
+si1314_word_durations_cum_sum = np.append(0, si1314_word_durations_cum_sum)
+si1314_head_poses_means = np.empty((0, 3))
+si1314_head_poses_ranges = np.empty((0, 3))
+for i in range(len(train_val_dirs)):
+    head_poses = train_val_head_poses_per_frame_in_word[train_val_word_durations_cum_sum[i]:train_val_word_durations_cum_sum[i+1]]
+    train_val_head_poses_means = np.vstack((train_val_head_poses_means, np.mean(head_poses, axis=0)))
+    train_val_head_poses_ranges = np.vstack((train_val_head_poses_ranges, np.max(head_poses, axis=0) - np.min(head_poses, axis=0)))
+
 
