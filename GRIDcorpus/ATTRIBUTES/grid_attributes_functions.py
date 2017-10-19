@@ -1,5 +1,6 @@
 # GET GRIDCORPUS ATTRIBUTES
 
+import cv2
 import dlib
 import glob
 import math
@@ -58,7 +59,7 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
                                                           0) / 255., (NUM_OF_MOUTH_PIXELS,))
         # SAVE ENCODER FEATURE
         lipreader_pred_word_idx[i] = lipreader.predict(wordImages)
-        break
+        # break
         # # MAKE PREDICTION
         # lipreader_pred_word_idx[i] = np.argmax(lipreader.predict(wordImages))
         # lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex

@@ -364,12 +364,24 @@ r.close()
 
 train_val_lipreader_64_features = np.zeros((len(train_val_dirs), 64))
 make_LSTMlipreader_predictions(train_val_lipreader_64_features,
-                               train_val_lipreader_preds_correct_or_wrong,
+                               train_val_lipreader_64_features,
                                train_val_dirs,
                                train_val_word_numbers,
                                train_val_word_idx,
                                LSTMLipreaderEncoder,
                                GRID_VOCAB_FULL,
                                0)
+
+si1314_lipreader_64_features = np.zeros((len(si1314_dirs), 64))
+make_LSTMlipreader_predictions(si1314_lipreader_64_features,
+                               si1314_lipreader_64_features,
+                               si1314_dirs,
+                               si1314_word_numbers,
+                               si1314_word_idx,
+                               LSTMLipreaderEncoder,
+                               GRID_VOCAB_FULL,
+                               0)
+
+np.savez('lipreader_64_features', train_val_lipreader_64_features=train_val_lipreader_64_features, si1314_lipreader_64_features=si1314_lipreader_64_features)
 
 
