@@ -360,22 +360,36 @@ np.save('si_grid_attributes_matrix', si_grid_attributes)
 # LIPREADER FEATURES
 #############################################################
 
-lipreader_64_features = np.load('lipreader_64_features.npz')
+# lipreader_64_features = np.load('lipreader_64_features.npz')
 
-train_val_lipreader_64_features = lipreader_64_features['train_val_lipreader_64_features']
-si1314_lipreader_64_features = lipreader_64_features['si1314_lipreader_64_features']
+# train_val_lipreader_64_features = lipreader_64_features['train_val_lipreader_64_features']
+# si1314_lipreader_64_features = lipreader_64_features['si1314_lipreader_64_features']
 
-train_lipreader_64_features = train_val_lipreader_64_features[train_dirs_binary]
-val_lipreader_64_features = train_val_lipreader_64_features[val_dirs_binary]
-si_lipreader_64_features = si1314_lipreader_64_features
-si_lipreader_64_features = np.vstack((si_lipreader_64_features, train_val_lipreader_64_features[si_dirs_binary]))
+# train_lipreader_64_features = train_val_lipreader_64_features[train_dirs_binary]
+# val_lipreader_64_features = train_val_lipreader_64_features[val_dirs_binary]
+# si_lipreader_64_features = np.vstack((si1314_lipreader_64_features, train_val_lipreader_64_features[si_dirs_binary]))
 
-train_grid_attributes = np.hstack((train_grid_attributes, train_lipreader_64_features))
-val_grid_attributes = np.hstack((val_grid_attributes, val_lipreader_64_features))
-si_grid_attributes = np.hstack((si_grid_attributes, si_lipreader_64_features))
+# train_grid_attributes = np.hstack((train_grid_attributes, train_lipreader_64_features))
+# val_grid_attributes = np.hstack((val_grid_attributes, val_lipreader_64_features))
+# si_grid_attributes = np.hstack((si_grid_attributes, si_lipreader_64_features))
 
 np.save('train_grid_attributes_matrix', train_grid_attributes)
 np.save('val_grid_attributes_matrix', val_grid_attributes)
 np.save('si_grid_attributes_matrix', si_grid_attributes)
 
+
+# #############################################################
+# # LIPREADER PREDS
+# #############################################################
+
+# lipreader_preds = np.load('lipreader_preds.npz')
+
+# train_val_lipreader_preds = lipreader_preds['train_val_preds']
+# si1314_lipreader_preds = lipreader_preds['si1314_lipreader_preds']
+
+# train_lipreader_preds = train_val_lipreader_preds[train_dirs_binary]
+# val_lipreader_preds = train_val_lipreader_preds[val_dirs_binary]
+# si_lipreader_preds = np.vstack((si1314_lipreader_preds, train_val_lipreader_preds[si_dirs_binary]))
+
+# np.savez('lipreader_preds', train_lipreader_preds=train_lipreader_preds, val_lipreader_preds=val_lipreader_preds, si_lipreader_preds=si_lipreader_preds)
 

@@ -372,13 +372,13 @@ make_LSTMlipreader_predictions(train_val_lipreader_64_features,
                                GRID_VOCAB_FULL,
                                0)
 
-si1314_lipreader_64_features = np.zeros((len(si1314_dirs), 64))
-make_LSTMlipreader_predictions(si1314_lipreader_64_features,
-                               si1314_lipreader_64_features,
+si1314_lipreader_preds = np.zeros((len(si1314_dirs), 51))
+make_LSTMlipreader_predictions(si1314_lipreader_preds,
+                               si1314_lipreader_preds,
                                si1314_dirs,
                                si1314_word_numbers,
                                si1314_word_idx,
-                               LSTMLipreaderEncoder,
+                               LSTMLipreaderModel,
                                GRID_VOCAB_FULL,
                                0)
 
