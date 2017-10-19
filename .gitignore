@@ -104,5 +104,12 @@ ENV/
 *.hdf5
 
 # numpy
-*.npz
+# *.npz
 lipreader_preds.npy
+GRIDcorpus/head_poses_si.txt
+GRIDcorpus/head_poses_train_val_00.txt
+GRIDcorpus/head_poses_train_val_01.txt
+GRIDcorpus/head_poses_train_val_02.txt
+GRIDcorpus/train_val_si_LSTM256_features_onehotwords.npz
+GRIDcorpus/train_val_si_LSTM64_features_onehotwords.npz
+GRIDcorpus/train_val_si_syncnet_features_onehotwords.npz
