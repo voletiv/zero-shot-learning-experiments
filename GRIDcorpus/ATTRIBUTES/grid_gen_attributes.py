@@ -358,3 +358,18 @@ r.close()
 # for ll in lines:
 #     ll
 
+########################################
+# ATTR - Lipreader features
+########################################
+
+train_val_lipreader_64_features = np.zeros((len(train_val_dirs), 64))
+make_LSTMlipreader_predictions(train_val_lipreader_64_features,
+                               train_val_lipreader_preds_correct_or_wrong,
+                               train_val_dirs,
+                               train_val_word_numbers,
+                               train_val_word_idx,
+                               LSTMLipreaderEncoder,
+                               GRID_VOCAB_FULL,
+                               0)
+
+

@@ -4,6 +4,22 @@ import os
 
 from grid_attributes_functions import *
 
+########################################
+# ATTRIBUTES
+########################################
+
+# Speaker identity
+
+# Male or not
+
+# Bilabial or not
+
+# Duration of word
+
+# Head Pose Mean (3)
+
+# Head Pose Range (3)
+
 #############################################################
 # LOAD ATTRIBUTES
 #############################################################
@@ -116,20 +132,6 @@ train_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwr
 val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong']
 si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']
 
-########################################
-# ATTRIBUTES
-########################################
-
-# Speaker identity
-
-# Male or not
-
-# Duration of word
-
-# Bilabial or not
-
-# Pose (3)
-
 #############################################################
 # MAKE ATTRIBUTES ARRAY: n x a
 #############################################################
@@ -174,6 +176,22 @@ for itv in si_male_or_not_from_trainval:
 
 si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_male_or_not, dtype=float), (si_num_of_rows, 1))))
 
+# BILABIAL OR NOT
+train_val_bilabial_or_not = grid_attributes_dict['train_val_bilabial_or_not']
+# Train
+train_bilabial_or_not = train_val_bilabial_or_not[train_dirs_binary]
+train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_bilabial_or_not, dtype=float), (train_num_of_rows, 1))))
+# Val
+val_bilabial_or_not = train_val_bilabial_or_not[val_dirs_binary]
+val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_bilabial_or_not, dtype=float), (val_num_of_rows, 1))))
+# Si
+si_bilabial_or_not = grid_attributes_dict['si1314_bilabial_or_not']
+si_bilabial_or_not_from_trainval = train_val_word_durations[si_dirs_binary]
+for itv in si_bilabial_or_not_from_trainval:
+    si_bilabial_or_not = np.append(si_bilabial_or_not, itv)
+
+si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_bilabial_or_not, dtype=float), (si_num_of_rows, 1))))
+
 # WORD DURATION
 train_val_word_durations = grid_attributes_dict['train_val_word_durations']
 # Train
@@ -190,22 +208,6 @@ for itv in si_word_durations_from_trainval:
     si_word_durations = np.append(si_word_durations, itv)
 
 si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_word_durations, dtype=float), (si_num_of_rows, 1))))
-
-# BILABIAL OR NOT
-train_val_bilabial_or_not = grid_attributes_dict['train_val_bilabial_or_not']
-# Train
-train_bilabial_or_not = train_val_bilabial_or_not[train_dirs_binary]
-train_grid_attributes = np.hstack((train_grid_attributes, np.reshape(np.array(train_bilabial_or_not, dtype=float), (train_num_of_rows, 1))))
-# Val
-val_bilabial_or_not = train_val_bilabial_or_not[val_dirs_binary]
-val_grid_attributes = np.hstack((val_grid_attributes, np.reshape(np.array(val_bilabial_or_not, dtype=float), (val_num_of_rows, 1))))
-# Si
-si_bilabial_or_not = grid_attributes_dict['si1314_bilabial_or_not']
-si_bilabial_or_not_from_trainval = train_val_word_durations[si_dirs_binary]
-for itv in si_bilabial_or_not_from_trainval:
-    si_bilabial_or_not = np.append(si_bilabial_or_not, itv)
-
-si_grid_attributes = np.hstack((si_grid_attributes, np.reshape(np.array(si_bilabial_or_not, dtype=float), (si_num_of_rows, 1))))
 
 # SAVE
 np.save('train_grid_attributes_matrix', train_grid_attributes)
@@ -333,5 +335,14 @@ si_grid_attributes = np.hstack((si_grid_attributes, si_head_poses_ranges))
 np.save('train_grid_attributes_matrix', train_grid_attributes)
 np.save('val_grid_attributes_matrix', val_grid_attributes)
 np.save('si_grid_attributes_matrix', si_grid_attributes)
+
+#############################################################
+# LIPREADER FEATURES
+#############################################################
+
+lipreader_features = np.load(os.path.join(GRID_DIR, 'train_val_si_LSTM64_features_onehotwords.npz'))
+
+train_val_lipreader_features = lipreader_features['train_val_features']
+si1314_lipreader_features = lipreader_features['si1314_features']
 
 

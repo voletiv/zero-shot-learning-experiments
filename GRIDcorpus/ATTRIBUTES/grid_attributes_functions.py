@@ -56,9 +56,12 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
             # 0 0 0 0 0 0 0 7 6 5 4 3 2 1
             wordImages[0][-f - 1] = np.reshape(cv2.imread(wordMouthFrame,
                                                           0) / 255., (NUM_OF_MOUTH_PIXELS,))
-        # MAKE PREDICTION
-        lipreader_pred_word_idx[i] = np.argmax(lipreader.predict(wordImages))
-        lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex
+        # SAVE ENCODER FEATURE
+        lipreader_pred_word_idx[i] = lipreader.predict(wordImages)
+        break
+        # # MAKE PREDICTION
+        # lipreader_pred_word_idx[i] = np.argmax(lipreader.predict(wordImages))
+        # lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex
 
 
 def load_detector_and_predictor(verbose=False):
