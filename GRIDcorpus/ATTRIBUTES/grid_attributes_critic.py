@@ -162,9 +162,9 @@ si_critic_tpr_op = si_critic_tp/(si_critic_tp + si_critic_fn)
 # 0.6323333333333333
 
 # Compute ROC
-train_critic_fpr, train_critic_tpr, train_critic_roc_auc, \
-        val_critic_fpr, val_critic_tpr, val_critic_roc_auc, \
-        si_critic_fpr, si_critic_tpr, si_critic_roc_auc = \
+train_critic_fpr, train_critic_tpr, train_critic_thresholds, train_critic_roc_auc, \
+        val_critic_fpr, val_critic_tpr, val_critic_thresholds, val_critic_roc_auc, \
+        si_critic_fpr, si_critic_tpr, si_critic_thresholds, si_critic_roc_auc = \
     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_critic_preds,
         val_lipreader_preds_correct_or_wrong, val_critic_preds,
         si_lipreader_preds_correct_or_wrong, si_critic_preds,
@@ -178,9 +178,9 @@ train_critic_roc_auc, val_critic_roc_auc, si_critic_roc_auc
 # (0.73482362164374793, 0.74337826936799978, 0.64395556254427311)
 
 np.savez('ROC_C3DCritic',
-    train_critic_fpr=train_critic_fpr, train_critic_tpr=train_critic_tpr, train_critic_roc_auc=train_critic_roc_auc, \
-    val_critic_fpr=val_critic_fpr, val_critic_tpr=val_critic_tpr, val_critic_roc_auc=val_critic_roc_auc, \
-    si_critic_fpr=si_critic_fpr, si_critic_tpr=si_critic_tpr, si_critic_roc_auc=si_critic_roc_auc,
+    train_critic_fpr=train_critic_fpr, train_critic_tpr=train_critic_tpr, train_critic_thresholds=train_critic_thresholds, train_critic_roc_auc=train_critic_roc_auc,
+    val_critic_fpr=val_critic_fpr, val_critic_tpr=val_critic_tpr, val_critic_thresholds=val_critic_thresholds, val_critic_roc_auc=val_critic_roc_auc,
+    si_critic_fpr=si_critic_fpr, si_critic_tpr=si_critic_tpr, si_critic_thresholds=si_critic_thresholds, si_critic_roc_auc=si_critic_roc_auc,
     train_critic_fpr_op=train_critic_fpr_op, train_critic_tpr_op=train_critic_tpr_op,
     val_critic_fpr_op=val_critic_fpr_op, val_critic_tpr_op=val_critic_tpr_op,
     si_critic_fpr_op=si_critic_fpr_op, si_critic_tpr_op=si_critic_tpr_op)
@@ -222,9 +222,9 @@ np.savez('ROC_C3DCritic',
 # si_logReg_unopt_score = logReg.decision_function(si_matrix)
 
 # # Compute ROC
-# train_logReg_unopt_fpr, train_logReg_unopt_tpr, train_logReg_unopt_roc_auc, \
-#         val_logReg_unopt_fpr, val_logReg_unopt_tpr, val_logReg_unopt_roc_auc, \
-#         si_logReg_unopt_fpr, si_logReg_unopt_tpr, si_logReg_unopt_roc_auc = \
+# train_logReg_unopt_fpr, train_logReg_unopt_tpr, train_logReg_unopt_thresholds, train_logReg_unopt_roc_auc, \
+#         val_logReg_unopt_fpr, val_logReg_unopt_tpr, val_logReg_unopt_thresholds, val_logReg_unopt_roc_auc, \
+#         si_logReg_unopt_fpr, si_logReg_unopt_tpr, si_logReg_unopt_thresholds, si_logReg_unopt_roc_auc = \
 #     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_logReg_unopt_score,
 #         val_lipreader_preds_correct_or_wrong, val_logReg_unopt_score,
 #         si_lipreader_preds_correct_or_wrong, si_logReg_unopt_score,
@@ -237,11 +237,11 @@ np.savez('ROC_C3DCritic',
 # train_logReg_unopt_roc_auc, val_logReg_unopt_roc_auc, si_logReg_unopt_roc_auc
 # # (0.83961853740044889, 0.85645031181160991, 0.62133158287065327)
 
-# np.savez('ROC_logReg',
+# np.savez('ROC_logReg_unopt',
 #     train_logReg_unopt_score=train_logReg_unopt_score, val_logReg_unopt_score=val_logReg_unopt_score, si_logReg_unopt_score=si_logReg_unopt_score,
-#     train_logReg_unopt_fpr=train_logReg_unopt_fpr, train_logReg_unopt_tpr=train_logReg_unopt_tpr, train_logReg_unopt_roc_auc=train_logReg_unopt_roc_auc, \
-#     val_logReg_unopt_fpr=val_logReg_unopt_fpr, val_logReg_unopt_tpr=val_logReg_unopt_tpr, val_logReg_unopt_roc_auc=val_logReg_unopt_roc_auc, \
-#     si_logReg_unopt_fpr=si_logReg_unopt_fpr, si_logReg_unopt_tpr=si_logReg_unopt_tpr, si_logReg_unopt_roc_auc=si_logReg_unopt_roc_auc,
+#     train_logReg_unopt_fpr=train_logReg_unopt_fpr, train_logReg_unopt_tpr=train_logReg_unopt_tpr, train_logReg_unopt_thresholds=train_logReg_unopt_thresholds, train_logReg_unopt_roc_auc=train_logReg_unopt_roc_auc,
+#     val_logReg_unopt_fpr=val_logReg_unopt_fpr, val_logReg_unopt_tpr=val_logReg_unopt_tpr, val_logReg_unopt_thresholds=val_logReg_unopt_thresholds, val_logReg_unopt_roc_auc=val_logReg_unopt_roc_auc,
+#     si_logReg_unopt_fpr=si_logReg_unopt_fpr, si_logReg_unopt_tpr=si_logReg_unopt_tpr, si_logReg_unopt_thresholds=si_logReg_unopt_thresholds, si_logReg_unopt_roc_auc=si_logReg_unopt_roc_auc,
 #     train_logReg_unopt_fpr_op=train_logReg_unopt_fpr_op, train_logReg_unopt_tpr_op=train_logReg_unopt_tpr_op,
 #     val_logReg_unopt_fpr_op=val_logReg_unopt_fpr_op, val_logReg_unopt_tpr_op=val_logReg_unopt_tpr_op,
 #     si_logReg_unopt_fpr_op=si_logReg_unopt_fpr_op, si_logReg_unopt_tpr_op=si_logReg_unopt_tpr_op)
@@ -280,9 +280,9 @@ np.savez('ROC_C3DCritic',
 # si_SVM_linear_unopt_score = SVM_linear_unopt.decision_function(si_matrix)
 
 # # Compute ROC
-# train_SVM_linear_unopt_fpr, train_SVM_linear_unopt_tpr, train_SVM_linear_unopt_roc_auc, \
-#         val_SVM_linear_unopt_fpr, val_SVM_linear_unopt_tpr, val_SVM_linear_unopt_roc_auc, \
-#         si_SVM_linear_unopt_fpr, si_SVM_linear_unopt_tpr, si_SVM_linear_unopt_roc_auc = \
+# train_SVM_linear_unopt_fpr, train_SVM_linear_unopt_tpr, train_SVM_linear_unopt_thresholds, train_SVM_linear_unopt_roc_auc, \
+#         val_SVM_linear_unopt_fpr, val_SVM_linear_unopt_tpr, val_SVM_linear_unopt_thresholds, val_SVM_linear_unopt_roc_auc, \
+#         si_SVM_linear_unopt_fpr, si_SVM_linear_unopt_tpr, si_SVM_linear_unopt_thresholds, si_SVM_linear_unopt_roc_auc = \
 #     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_SVM_linear_unopt_score,
 #         val_lipreader_preds_correct_or_wrong, val_SVM_linear_unopt_score,
 #         si_lipreader_preds_correct_or_wrong, si_SVM_linear_unopt_score,
@@ -353,9 +353,9 @@ np.savez('ROC_C3DCritic',
 # si_SVM_linear_opt_score = SVM_linear_optimal.decision_function(si_matrix)
 
 # # Compute ROC
-# train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr, train_SVM_linear_opt_roc_auc, \
-#         val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr, val_SVM_linear_opt_roc_auc, \
-#         si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, si_SVM_linear_opt_roc_auc = \
+# train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr, train_SVM_linear_opt_thresholds, train_SVM_linear_opt_roc_auc, \
+#         val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr, val_SVM_linear_opt_thresholds, val_SVM_linear_opt_roc_auc, \
+#         si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, si_SVM_linear_opt_thresholds, si_SVM_linear_opt_roc_auc = \
 #     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_SVM_linear_opt_score,
 #         val_lipreader_preds_correct_or_wrong, val_SVM_linear_opt_score,
 #         si_lipreader_preds_correct_or_wrong, si_SVM_linear_opt_score,
@@ -367,9 +367,9 @@ np.savez('ROC_C3DCritic',
 
 # np.savez('ROC_SVM_linear_opt',
 #     train_SVM_linear_opt_score=train_SVM_linear_opt_score, val_SVM_linear_opt_score=val_SVM_linear_opt_score, si_SVM_linear_opt_score=si_SVM_linear_opt_score,
-#     train_SVM_linear_opt_fpr=train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr=train_SVM_linear_opt_tpr, train_SVM_linear_opt_roc_auc=train_SVM_linear_opt_roc_auc,
-#     val_SVM_linear_opt_fpr=val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr=val_SVM_linear_opt_tpr, val_SVM_linear_opt_roc_auc=val_SVM_linear_opt_roc_auc,
-#     si_SVM_linear_opt_fpr=si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr=si_SVM_linear_opt_tpr, si_SVM_linear_opt_roc_auc=si_SVM_linear_opt_roc_auc,
+#     train_SVM_linear_opt_fpr=train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr=train_SVM_linear_opt_tpr, train_SVM_linear_opt_thresholds=train_SVM_linear_opt_thresholds, train_SVM_linear_opt_roc_auc=train_SVM_linear_opt_roc_auc,
+#     val_SVM_linear_opt_fpr=val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr=val_SVM_linear_opt_tpr, val_SVM_linear_opt_thresholds=val_SVM_linear_opt_thresholds, val_SVM_linear_opt_roc_auc=val_SVM_linear_opt_roc_auc,
+#     si_SVM_linear_opt_fpr=si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr=si_SVM_linear_opt_tpr, si_SVM_linear_opt_thresholds=si_SVM_linear_opt_thresholds, si_SVM_linear_opt_roc_auc=si_SVM_linear_opt_roc_auc,
 #     train_SVM_linear_opt_fpr_op=train_SVM_linear_opt_fpr_op, train_SVM_linear_opt_tpr_op=train_SVM_linear_opt_tpr_op,
 #     val_SVM_linear_opt_fpr_op=val_SVM_linear_opt_fpr_op, val_SVM_linear_opt_tpr_op=val_SVM_linear_opt_tpr_op,
 #     si_SVM_linear_opt_fpr_op=si_SVM_linear_opt_fpr_op, si_SVM_linear_opt_tpr_op=si_SVM_linear_opt_tpr_op)
@@ -378,16 +378,16 @@ np.savez('ROC_C3DCritic',
 SVM_linear_optimal = joblib.load('SVM_linear_optimal.pkl')
 ROC_SVM_linear_opt = np.load('ROC_SVM_linear_opt.npz')
 train_SVM_linear_opt_score, val_SVM_linear_opt_score, si_SVM_linear_opt_score, \
-        train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr, train_SVM_linear_opt_roc_auc, \
-        val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr, val_SVM_linear_opt_roc_auc, \
-        si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, si_SVM_linear_opt_roc_auc , \
+        train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr, train_SVM_linear_opt_thresholds, train_SVM_linear_opt_roc_auc, \
+        val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr, val_SVM_linear_opt_thresholds, val_SVM_linear_opt_roc_auc, \
+        si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, si_SVM_linear_opt_thresholds, si_SVM_linear_opt_roc_auc , \
         train_SVM_linear_opt_fpr_op, train_SVM_linear_opt_tpr_op, \
         val_SVM_linear_opt_fpr_op, val_SVM_linear_opt_tpr_op, \
         si_SVM_linear_opt_fpr_op, si_SVM_linear_opt_tpr_op = \
     ROC_SVM_linear_opt['train_SVM_linear_opt_score'], ROC_SVM_linear_opt['val_SVM_linear_opt_score'], ROC_SVM_linear_opt['si_SVM_linear_opt_score'], \
-        ROC_SVM_linear_opt['train_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_roc_auc'].item(), \
-        ROC_SVM_linear_opt['val_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_roc_auc'].item(), \
-        ROC_SVM_linear_opt['si_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_roc_auc'].item(), \
+        ROC_SVM_linear_opt['train_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['train_SVM_linear_opt_roc_auc'].item(), \
+        ROC_SVM_linear_opt['val_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['val_SVM_linear_opt_roc_auc'].item(), \
+        ROC_SVM_linear_opt['si_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['si_SVM_linear_opt_roc_auc'].item(), \
         ROC_SVM_linear_opt['train_SVM_linear_opt_fpr_op'].item(), ROC_SVM_linear_opt['train_SVM_linear_opt_tpr_op'].item(), \
         ROC_SVM_linear_opt['val_SVM_linear_opt_fpr_op'].item(), ROC_SVM_linear_opt['val_SVM_linear_opt_tpr_op'].item(), \
         ROC_SVM_linear_opt['si_SVM_linear_opt_fpr_op'].item(), ROC_SVM_linear_opt['si_SVM_linear_opt_tpr_op'].item()
@@ -440,9 +440,9 @@ train_SVM_linear_opt_score, val_SVM_linear_opt_score, si_SVM_linear_opt_score, \
 # si_SVM_rbf_opt_score = SVM_rbf_optimal.decision_function(si_matrix)
 
 # # Compute ROC
-# train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_roc_auc, \
-#         val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_roc_auc, \
-#         si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_roc_auc = \
+# train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_thresholds, train_SVM_rbf_opt_roc_auc, \
+#         val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_thresholds, val_SVM_rbf_opt_roc_auc, \
+#         si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_thresholds, si_SVM_rbf_opt_roc_auc = \
 #     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_SVM_rbf_opt_score,
 #         val_lipreader_preds_correct_or_wrong, val_SVM_rbf_opt_score,
 #         si_lipreader_preds_correct_or_wrong, si_SVM_rbf_opt_score,
@@ -454,9 +454,9 @@ train_SVM_linear_opt_score, val_SVM_linear_opt_score, si_SVM_linear_opt_score, \
 
 # np.savez('ROC_SVM_rbf_opt',
 #     train_SVM_rbf_opt_score=train_SVM_rbf_opt_score, val_SVM_rbf_opt_score=val_SVM_rbf_opt_score, si_SVM_rbf_opt_score=si_SVM_rbf_opt_score,
-#     train_SVM_rbf_opt_fpr=train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr=train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_roc_auc=train_SVM_rbf_opt_roc_auc,
-#     val_SVM_rbf_opt_fpr=val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr=val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_roc_auc=val_SVM_rbf_opt_roc_auc,
-#     si_SVM_rbf_opt_fpr=si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr=si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_roc_auc=si_SVM_rbf_opt_roc_auc,
+#     train_SVM_rbf_opt_fpr=train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr=train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_thresholds=train_SVM_rbf_opt_thresholds, train_SVM_rbf_opt_roc_auc=train_SVM_rbf_opt_roc_auc,
+#     val_SVM_rbf_opt_fpr=val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr=val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_thresholds=val_SVM_rbf_opt_thresholds, val_SVM_rbf_opt_roc_auc=val_SVM_rbf_opt_roc_auc,
+#     si_SVM_rbf_opt_fpr=si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr=si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_thresholds=si_SVM_rbf_opt_thresholds, si_SVM_rbf_opt_roc_auc=si_SVM_rbf_opt_roc_auc,
 #     train_SVM_rbf_opt_fpr_op=train_SVM_rbf_opt_fpr_op, train_SVM_rbf_opt_tpr_op=train_SVM_rbf_opt_tpr_op,
 #     val_SVM_rbf_opt_fpr_op=val_SVM_rbf_opt_fpr_op, val_SVM_rbf_opt_tpr_op=val_SVM_rbf_opt_tpr_op,
 #     si_SVM_rbf_opt_fpr_op=si_SVM_rbf_opt_fpr_op, si_SVM_rbf_opt_tpr_op=si_SVM_rbf_opt_tpr_op)
@@ -465,16 +465,16 @@ train_SVM_linear_opt_score, val_SVM_linear_opt_score, si_SVM_linear_opt_score, \
 SVM_rbf_optimal = joblib.load('SVM_rbf_optimal.pkl')
 ROC_SVM_rbf_opt = np.load('ROC_SVM_rbf_opt.npz')
 train_SVM_rbf_opt_score, val_SVM_rbf_opt_score, si_SVM_rbf_opt_score, \
-        train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_roc_auc, \
-        val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_roc_auc, \
-        si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_roc_auc, \
+        train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr, train_SVM_rbf_opt_thresholds, train_SVM_rbf_opt_roc_auc, \
+        val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr, val_SVM_rbf_opt_thresholds, val_SVM_rbf_opt_roc_auc, \
+        si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_thresholds, si_SVM_rbf_opt_roc_auc, \
         train_SVM_rbf_opt_fpr_op, train_SVM_rbf_opt_tpr_op, \
         val_SVM_rbf_opt_fpr_op, val_SVM_rbf_opt_tpr_op, \
         si_SVM_rbf_opt_fpr_op, si_SVM_rbf_opt_tpr_op = \
     ROC_SVM_rbf_opt['train_SVM_rbf_opt_score'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_score'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_score'], \
-        ROC_SVM_rbf_opt['train_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_roc_auc'].item(), \
-        ROC_SVM_rbf_opt['val_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_roc_auc'].item(), \
-        ROC_SVM_rbf_opt['si_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_roc_auc'].item(), \
+        ROC_SVM_rbf_opt['train_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_roc_auc'].item(), \
+        ROC_SVM_rbf_opt['val_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_roc_auc'].item(), \
+        ROC_SVM_rbf_opt['si_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_roc_auc'].item(), \
         ROC_SVM_rbf_opt['train_SVM_rbf_opt_fpr_op'].item(), ROC_SVM_rbf_opt['train_SVM_rbf_opt_tpr_op'].item(), \
         ROC_SVM_rbf_opt['val_SVM_rbf_opt_fpr_op'].item(), ROC_SVM_rbf_opt['val_SVM_rbf_opt_tpr_op'].item(), \
         ROC_SVM_rbf_opt['si_SVM_rbf_opt_fpr_op'].item(), ROC_SVM_rbf_opt['si_SVM_rbf_opt_tpr_op'].item()

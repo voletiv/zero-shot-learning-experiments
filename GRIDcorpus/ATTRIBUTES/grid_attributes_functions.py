@@ -24,9 +24,9 @@ def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
                                  si_fpr_op=None, si_tpr_op=None,
                                  savePlot=False, showPlot=False,
                                  plot_title='ROC curve of linear SVM unoptimized'):
-    train_fpr, train_tpr, train_roc_auc = compute_ROC_singleclass(train_correct_or_not, train_probabilities)
-    val_fpr, val_tpr, val_roc_auc = compute_ROC_singleclass(val_correct_or_not, val_probabilities)
-    si_fpr, si_tpr, si_roc_auc = compute_ROC_singleclass(si_correct_or_not, si_probabilities)
+    train_fpr, train_tpr, train_thresholds, train_roc_auc = compute_ROC_singleclass(train_correct_or_not, train_probabilities)
+    val_fpr, val_tpr, val_thresholds, val_roc_auc = compute_ROC_singleclass(val_correct_or_not, val_probabilities)
+    si_fpr, si_tpr, si_thresholds, si_roc_auc = compute_ROC_singleclass(si_correct_or_not, si_probabilities)
     if showPlot or savePlot:
         plt.plot(train_fpr, train_tpr, color='C0', label='train; AUC={0:0.4f}'.format(train_roc_auc))
         plt.plot(val_fpr, val_tpr, color='C1', label='val; AUC={0:0.4f}'.format(val_roc_auc))
@@ -47,7 +47,7 @@ def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
         plt.show()
     if showPlot or savePlot:
         plt.close()
-    return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
+    return train_fpr, train_tpr, train_thresholds, train_roc_auc, val_fpr, val_tpr, val_thresholds, val_roc_auc, si_fpr, si_tpr, si_thresholds, si_roc_auc
 
 
 def compute_ROC_singleclass(correct_or_not, probability):
@@ -58,7 +58,7 @@ def compute_ROC_singleclass(correct_or_not, probability):
     # tpr = interp(mean_fpr, fpr, tpr)
     tpr[0] = 0.0
     roc_auc = auc(fpr, tpr)
-    return fpr, tpr, roc_auc
+    return fpr, tpr, thresholds, roc_auc
 
 
 def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
