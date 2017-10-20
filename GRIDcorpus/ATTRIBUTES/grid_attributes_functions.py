@@ -9,8 +9,9 @@ import numpy as np
 import tqdm
 
 from scipy import interp
-from sklearn.metrics import roc_curve, auc
 from sklearn.preprocessing import label_binarize
+from sklearn.metrics import roc_curve, auc
+from sklearn.metrics import confusion_matrix
 
 from grid_attributes_params import *
 
@@ -18,15 +19,24 @@ from grid_attributes_params import *
 def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
                                  val_correct_or_not, val_probabilities,
                                  si_correct_or_not, si_probabilities,
+                                 train_fpr_op=None, train_tpr_op=None,
+                                 val_fpr_op=None, val_tpr_op=None,
+                                 si_fpr_op=None, si_tpr_op=None,
                                  savePlot=False, showPlot=False,
                                  plot_title='ROC curve of linear SVM unoptimized'):
     train_fpr, train_tpr, train_roc_auc = compute_ROC_singleclass(train_correct_or_not, train_probabilities)
     val_fpr, val_tpr, val_roc_auc = compute_ROC_singleclass(val_correct_or_not, val_probabilities)
     si_fpr, si_tpr, si_roc_auc = compute_ROC_singleclass(si_correct_or_not, si_probabilities)
     if showPlot or savePlot:
-        plt.plot(train_fpr, train_tpr, label='train; AUC={0:0.4f}'.format(train_roc_auc))
-        plt.plot(val_fpr, val_tpr, label='val; AUC={0:0.4f}'.format(val_roc_auc))
-        plt.plot(si_fpr, si_tpr, label='si; AUC={0:0.4f}'.format(si_roc_auc))
+        plt.plot(train_fpr, train_tpr, color='C0', label='train; AUC={0:0.4f}'.format(train_roc_auc))
+        plt.plot(val_fpr, val_tpr, color='C1', label='val; AUC={0:0.4f}'.format(val_roc_auc))
+        plt.plot(si_fpr, si_tpr, color='C2', label='si; AUC={0:0.4f}'.format(si_roc_auc))
+        if train_fpr_op is not None and train_tpr_op is not None:
+            plt.plot(train_fpr_op, train_tpr_op, color='C0', marker='x')
+        if val_fpr_op is not None and val_tpr_op is not None:
+            plt.plot(val_fpr_op, val_tpr_op, color='C1', marker='x')
+        if si_fpr_op is not None and si_tpr_op is not None:
+            plt.plot(si_fpr_op, si_tpr_op, color='C2', marker='x')
         plt.legend(loc='lower right')
         plt.xlabel('False positive rate')
         plt.ylabel('True positive rate')
@@ -43,7 +53,7 @@ def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
 def compute_ROC_singleclass(correct_or_not, probability):
     # probas_ = classifier.fit(X[train], y[train]).predict_proba(X[test])
     # Compute ROC curve and area the curve
-    mean_fpr = np.linspace(0, 1, 100)
+    # mean_fpr = np.linspace(0, 1, 100)
     fpr, tpr, thresholds = roc_curve(correct_or_not, probability)
     # tpr = interp(mean_fpr, fpr, tpr)
     tpr[0] = 0.0
@@ -104,6 +114,23 @@ def compute_ROC_multiclass(y_test, y_score, n_classes):
     tpr['macro'] = mean_tpr
     roc_auc['macro'] = auc(fpr['macro'], tpr['macro'])
     return fpr, tpr, roc_auc
+
+
+def calc_grid_operating_points(clf, train_y, val_y, si_y, train_matrix, val_matrix, si_matrix):
+    # Train
+    train_tn, train_fp, train_fn, train_tp = confusion_matrix(train_y, clf.predict(train_matrix)).ravel()
+    train_fpr_op = train_fp/(train_fp + train_tn)
+    train_tpr_op = train_tp/(train_tp + train_fn)
+    # Val
+    val_tn, val_fp, val_fn, val_tp = confusion_matrix(val_y, clf.predict(val_matrix)).ravel()
+    val_fpr_op = val_fp/(val_fp + val_tn)
+    val_tpr_op = val_tp/(val_tp + val_fn)
+    # Si
+    si_tn, si_fp, si_fn, si_tp = confusion_matrix(si_y, clf.predict(si_matrix)).ravel()
+    si_fpr_op = si_fp/(si_fp + si_tn)
+    si_tpr_op = si_tp/(si_tp + si_fn)
+    # Return
+    return train_fpr_op, train_tpr_op, val_fpr_op, val_tpr_op, si_fpr_op, si_tpr_op
 
 
 def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
