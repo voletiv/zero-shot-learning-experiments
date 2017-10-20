@@ -161,65 +161,120 @@ si_critic_OP_tpr = si_critic_tp/(si_critic_tp + si_critic_fn)
 # >>> (si_critic_tp + si_critic_tn)/(si_critic_tp + si_critic_fp + si_critic_fn + si_critic_tn)
 # 0.6323333333333333
 
-# Compute ROC
-train_critic_fpr, train_critic_tpr, train_critic_thresholds, train_critic_roc_auc, \
+# # Compute ROC
+# train_critic_fpr, train_critic_tpr, train_critic_thresholds, train_critic_roc_auc, \
+#         val_critic_fpr, val_critic_tpr, val_critic_thresholds, val_critic_roc_auc, \
+#         si_critic_fpr, si_critic_tpr, si_critic_thresholds, si_critic_roc_auc = \
+#     compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_critic_preds,
+#         val_lipreader_preds_correct_or_wrong, val_critic_preds,
+#         si_lipreader_preds_correct_or_wrong, si_critic_preds,
+#         train_critic_OP_fpr, train_critic_OP_tpr,
+#         val_critic_OP_fpr, val_critic_OP_tpr,
+#         si_critic_OP_fpr, si_critic_OP_tpr,
+#         savePlot=True, showPlot=True,
+#         plot_title='ROC curve of C3DCritic')
+
+# train_critic_roc_auc, val_critic_roc_auc, si_critic_roc_auc
+# # (0.73482362164374793, 0.74337826936799978, 0.64395556254427311)
+
+# # # FINDING OPTIMAL ROC OPERATING POINT
+
+# # # Old fpr, tpr, acc
+# # train_critic_OP_fpr, train_critic_OP_tpr
+# # # (0.2806418572891772, 0.6403541660658149, 0.64650816445933723)
+# # val_critic_OP_fpr, val_critic_OP_tpr
+# # # (0.281437125748503, 0.6424870466321243, 0.64854554124940389)
+# # si_critic_OP_fpr, si_critic_OP_tpr
+# # # (0.31461893138052616, 0.5477734543882404, 0.6323333333333333)
+
+# # Finding optimal point, accs
+# critic_optimalOP_threshold, train_critic_optimalOP_fpr, train_critic_optimalOP_tpr, train_critic_optimalOP_acc = \
+#     find_ROC_optimalOP(train_critic_fpr, train_critic_tpr, train_critic_thresholds, train_critic_preds, train_lipreader_preds_correct_or_wrong)
+
+# val_critic_optimalOP_fpr, val_critic_optimalOP_tpr, val_critic_optimalOP_acc = find_fpr_tpr_acc_from_thresh(val_lipreader_preds_correct_or_wrong, val_critic_preds, optimalOP_threshold)
+# si_critic_optimalOP_fpr, si_critic_optimalOP_tpr, si_critic_optimalOP_acc = find_fpr_tpr_acc_from_thresh(si_lipreader_preds_correct_or_wrong, si_critic_preds, optimalOP_threshold)
+
+# # New fpr, tpr, acc
+# train_critic_optimalOP_fpr, train_critic_optimalOP_tpr, train_critic_optimalOP_acc
+# # (0.26971662683509728, 0.63262480892913797, 0.64023190255837459)
+# val_critic_optimalOP_fpr, val_critic_optimalOP_tpr, val_critic_optimalOP_acc
+# # (0.25748502994011974, 0.6259067357512953, 0.63519313304721026)
+# si_critic_optimalOP_fpr, si_critic_optimalOP_tpr, si_critic_optimalOP_acc
+# # (0.29210740439381611, 0.52983138780804151, 0.63924999999999998)
+
+# np.savez('ROC_C3DCritic',
+#     train_critic_score=train_critic_preds, val_critic_score=val_critic_preds, si_critic_score=si_critic_preds,
+#     train_critic_fpr=train_critic_fpr, train_critic_tpr=train_critic_tpr, train_critic_thresholds=train_critic_thresholds, train_critic_roc_auc=train_critic_roc_auc,
+#     val_critic_fpr=val_critic_fpr, val_critic_tpr=val_critic_tpr, val_critic_thresholds=val_critic_thresholds, val_critic_roc_auc=val_critic_roc_auc,
+#     si_critic_fpr=si_critic_fpr, si_critic_tpr=si_critic_tpr, si_critic_thresholds=si_critic_thresholds, si_critic_roc_auc=si_critic_roc_auc,
+#     train_critic_OP_fpr=train_critic_OP_fpr, train_critic_OP_tpr=train_critic_OP_tpr,
+#     val_critic_OP_fpr=val_critic_OP_fpr, val_critic_OP_tpr=val_critic_OP_tpr,
+#     si_critic_OP_fpr=si_critic_OP_fpr, si_critic_OP_tpr=si_critic_OP_tpr,
+#     critic_optimalOP_threshold=critic_optimalOP_threshold,
+#     train_critic_optimalOP_fpr=train_critic_optimalOP_fpr, train_critic_optimalOP_tpr=train_critic_optimalOP_tpr,
+#     val_critic_optimalOP_fpr=val_critic_optimalOP_fpr, val_critic_optimalOP_tpr=val_critic_optimalOP_tpr,
+#     si_critic_optimalOP_fpr=si_critic_optimalOP_fpr, si_critic_optimalOP_tpr=si_critic_optimalOP_tpr)
+
+# Load
+ROC_critic = np.load('ROC_C3DCritic.npz')
+train_critic_score, val_critic_score, si_critic_score, \
+        train_critic_fpr, train_critic_tpr, train_critic_thresholds, train_critic_roc_auc, \
         val_critic_fpr, val_critic_tpr, val_critic_thresholds, val_critic_roc_auc, \
-        si_critic_fpr, si_critic_tpr, si_critic_thresholds, si_critic_roc_auc = \
-    compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_critic_preds,
-        val_lipreader_preds_correct_or_wrong, val_critic_preds,
-        si_lipreader_preds_correct_or_wrong, si_critic_preds,
-        train_critic_OP_fpr, train_critic_OP_tpr,
-        val_critic_OP_fpr, val_critic_OP_tpr,
-        si_critic_OP_fpr, si_critic_OP_tpr,
-        savePlot=True, showPlot=True,
-        plot_title='ROC curve of C3DCritic')
-
-train_critic_roc_auc, val_critic_roc_auc, si_critic_roc_auc
-# (0.73482362164374793, 0.74337826936799978, 0.64395556254427311)
-
-np.savez('ROC_C3DCritic',
-    train_critic_fpr=train_critic_fpr, train_critic_tpr=train_critic_tpr, train_critic_thresholds=train_critic_thresholds, train_critic_roc_auc=train_critic_roc_auc,
-    val_critic_fpr=val_critic_fpr, val_critic_tpr=val_critic_tpr, val_critic_thresholds=val_critic_thresholds, val_critic_roc_auc=val_critic_roc_auc,
-    si_critic_fpr=si_critic_fpr, si_critic_tpr=si_critic_tpr, si_critic_thresholds=si_critic_thresholds, si_critic_roc_auc=si_critic_roc_auc,
-    train_critic_OP_fpr=train_critic_OP_fpr, train_critic_OP_tpr=train_critic_OP_tpr,
-    val_critic_OP_fpr=val_critic_OP_fpr, val_critic_OP_tpr=val_critic_OP_tpr,
-    si_critic_OP_fpr=si_critic_OP_fpr, si_critic_OP_tpr=si_critic_OP_tpr)
+        si_critic_fpr, si_critic_tpr, si_critic_thresholds, si_critic_roc_auc , \
+        train_critic_OP_fpr, train_critic_OP_tpr, \
+        val_critic_OP_fpr, val_critic_OP_tpr, \
+        si_critic_OP_fpr, si_critic_OP_tpr, \
+        critic_optimalOP_threshold, \
+        train_critic_optimalOP_fpr, train_critic_optimalOP_tpr, \
+        val_critic_optimalOP_fpr, val_critic_optimalOP_tpr, \
+        si_critic_optimalOP_fpr, si_critic_optimalOP_tpr = \
+    ROC_critic['train_critic_score'], ROC_critic['val_critic_score'], ROC_critic['si_critic_score'], \
+        ROC_critic['train_critic_fpr'], ROC_critic['train_critic_tpr'], ROC_critic['train_critic_thresholds'], ROC_critic['train_critic_roc_auc'].item(), \
+        ROC_critic['val_critic_fpr'], ROC_critic['val_critic_tpr'], ROC_critic['val_critic_thresholds'], ROC_critic['val_critic_roc_auc'].item(), \
+        ROC_critic['si_critic_fpr'], ROC_critic['si_critic_tpr'], ROC_critic['si_critic_thresholds'], ROC_critic['si_critic_roc_auc'].item(), \
+        ROC_critic['train_critic_OP_fpr'].item(), ROC_critic['train_critic_OP_tpr'].item(), \
+        ROC_critic['val_critic_OP_fpr'].item(), ROC_critic['val_critic_OP_tpr'].item(), \
+        ROC_critic['si_critic_OP_fpr'].item(), ROC_critic['si_critic_OP_tpr'].item(), \
+        ROC_critic['critic_optimalOP_threshold'].item(), \
+        ROC_critic['train_critic_optimalOP_fpr'].item(), ROC_critic['train_critic_optimalOP_tpr'].item(), \
+        ROC_critic['val_critic_optimalOP_fpr'].item(), ROC_critic['val_critic_optimalOP_tpr'].item(), \
+        ROC_critic['si_critic_optimalOP_fpr'].item(), ROC_critic['si_critic_optimalOP_tpr'].item()
 
 
 #############################################################
 # LOGISTIC REGRESSOR ROC
 #############################################################
 
-# logReg = LogisticRegression()
-# logReg.fit(train_matrix, train_lipreader_preds_correct_or_wrong)
+# logReg_unopt = LogisticRegression()
+# logReg_unopt.fit(train_matrix, train_lipreader_preds_correct_or_wrong)
 
 # # Save
-# joblib.dump(logReg, 'logReg_unopt.pkl', compress=3) 
+# joblib.dump(logReg_unopt, 'logReg_unopt.pkl', compress=3) 
 
 # # Acc
-# logReg.score(train_matrix, train_lipreader_preds_correct_or_wrong)
-# logReg.score(val_matrix, val_lipreader_preds_correct_or_wrong)
-# logReg.score(si_matrix, si_lipreader_preds_correct_or_wrong)
+# logReg_unopt.score(train_matrix, train_lipreader_preds_correct_or_wrong)
+# logReg_unopt.score(val_matrix, val_lipreader_preds_correct_or_wrong)
+# logReg_unopt.score(si_matrix, si_lipreader_preds_correct_or_wrong)
 # # >>> # Acc
-# # ... logReg.score(train_matrix, train_lipreader_preds_correct_or_wrong)
+# # ... logReg_unopt.score(train_matrix, train_lipreader_preds_correct_or_wrong)
 # # 0.92226477315036437
-# # >>> logReg.score(val_matrix, val_lipreader_preds_correct_or_wrong)
+# # >>> logReg_unopt.score(val_matrix, val_lipreader_preds_correct_or_wrong)
 # # 0.92083929422985222
-# # >>> logReg.score(si_matrix, si_lipreader_preds_correct_or_wrong)
+# # >>> logReg_unopt.score(si_matrix, si_lipreader_preds_correct_or_wrong)
 # # 0.38700000000000001
 
 # # CONFUSION MATRIX, OPERATING POINT
 # train_logReg_unopt_OP_fpr, train_logReg_unopt_OP_tpr, \
 #         val_logReg_unopt_OP_fpr, val_logReg_unopt_OP_tpr, \
 #         si_logReg_unopt_OP_fpr, si_logReg_unopt_OP_tpr = \
-#     calc_grid_operating_points(logReg,
+#     calc_grid_operating_points(logReg_unopt,
 #         train_lipreader_preds_correct_or_wrong, val_lipreader_preds_correct_or_wrong, si_lipreader_preds_correct_or_wrong,
 #         train_matrix, val_matrix, si_matrix)
 
 # # Scores
-# train_logReg_unopt_score = logReg.decision_function(train_matrix)
-# val_logReg_unopt_score = logReg.decision_function(val_matrix)
-# si_logReg_unopt_score = logReg.decision_function(si_matrix)
+# train_logReg_unopt_score = logReg_unopt.decision_function(train_matrix)
+# val_logReg_unopt_score = logReg_unopt.decision_function(val_matrix)
+# si_logReg_unopt_score = logReg_unopt.decision_function(si_matrix)
 
 # # Compute ROC
 # train_logReg_unopt_fpr, train_logReg_unopt_tpr, train_logReg_unopt_thresholds, train_logReg_unopt_roc_auc, \
@@ -286,6 +341,30 @@ np.savez('ROC_C3DCritic',
 #     val_logReg_unopt_optimalOP_fpr=val_logReg_unopt_optimalOP_fpr, val_logReg_unopt_optimalOP_tpr=val_logReg_unopt_optimalOP_tpr,
 #     si_logReg_unopt_optimalOP_fpr=si_logReg_unopt_optimalOP_fpr, si_logReg_unopt_optimalOP_tpr=si_logReg_unopt_optimalOP_tpr)
 
+# Load
+logReg_unopt = joblib.load('logReg_unopt.pkl')
+ROC_logReg_unopt = np.load('ROC_logReg_unopt.npz')
+train_logReg_unopt_score, val_logReg_unopt_score, si_logReg_unopt_score, \
+        train_logReg_unopt_fpr, train_logReg_unopt_tpr, train_logReg_unopt_thresholds, train_logReg_unopt_roc_auc, \
+        val_logReg_unopt_fpr, val_logReg_unopt_tpr, val_logReg_unopt_thresholds, val_logReg_unopt_roc_auc, \
+        si_logReg_unopt_fpr, si_logReg_unopt_tpr, si_logReg_unopt_thresholds, si_logReg_unopt_roc_auc , \
+        train_logReg_unopt_OP_fpr, train_logReg_unopt_OP_tpr, \
+        val_logReg_unopt_OP_fpr, val_logReg_unopt_OP_tpr, \
+        si_logReg_unopt_OP_fpr, si_logReg_unopt_OP_tpr, \
+        train_logReg_unopt_optimalOP_fpr, train_logReg_unopt_optimalOP_tpr, \
+        val_logReg_unopt_optimalOP_fpr, val_logReg_unopt_optimalOP_tpr, \
+        si_logReg_unopt_optimalOP_fpr, si_logReg_unopt_optimalOP_tpr = \
+    ROC_logReg_unopt['train_logReg_unopt_score'], ROC_logReg_unopt['val_logReg_unopt_score'], ROC_logReg_unopt['si_logReg_unopt_score'], \
+        ROC_logReg_unopt['train_logReg_unopt_fpr'], ROC_logReg_unopt['train_logReg_unopt_tpr'], ROC_logReg_unopt['train_logReg_unopt_thresholds'], ROC_logReg_unopt['train_logReg_unopt_roc_auc'].item(), \
+        ROC_logReg_unopt['val_logReg_unopt_fpr'], ROC_logReg_unopt['val_logReg_unopt_tpr'], ROC_logReg_unopt['val_logReg_unopt_thresholds'], ROC_logReg_unopt['val_logReg_unopt_roc_auc'].item(), \
+        ROC_logReg_unopt['si_logReg_unopt_fpr'], ROC_logReg_unopt['si_logReg_unopt_tpr'], ROC_logReg_unopt['si_logReg_unopt_thresholds'], ROC_logReg_unopt['si_logReg_unopt_roc_auc'].item(), \
+        ROC_logReg_unopt['train_logReg_unopt_OP_fpr'].item(), ROC_logReg_unopt['train_logReg_unopt_OP_tpr'].item(), \
+        ROC_logReg_unopt['val_logReg_unopt_OP_fpr'].item(), ROC_logReg_unopt['val_logReg_unopt_OP_tpr'].item(), \
+        ROC_logReg_unopt['si_logReg_unopt_OP_fpr'].item(), ROC_logReg_unopt['si_logReg_unopt_OP_tpr'].item(), \
+        ROC_logReg_unopt['train_logReg_unopt_optimalOP_fpr'].item(), ROC_logReg_unopt['train_logReg_unopt_optimalOP_tpr'].item(), \
+        ROC_logReg_unopt['val_logReg_unopt_optimalOP_fpr'].item(), ROC_logReg_unopt['val_logReg_unopt_optimalOP_tpr'].item(), \
+        ROC_logReg_unopt['si_logReg_unopt_optimalOP_fpr'].item(), ROC_logReg_unopt['si_logReg_unopt_optimalOP_tpr'].item()
+
 
 #############################################################
 # SVM ROC
@@ -310,7 +389,7 @@ np.savez('ROC_C3DCritic',
 # train_logReg_unopt_OP_fpr, train_logReg_unopt_OP_tpr, \
 #         val_logReg_unopt_OP_fpr, val_logReg_unopt_OP_tpr, \
 #         si_logReg_unopt_OP_fpr, si_logReg_unopt_OP_tpr = \
-#     calc_grid_operating_points(logReg,
+#     calc_grid_operating_points(SVM_linear_unopt,
 #         train_lipreader_preds_correct_or_wrong, val_lipreader_preds_correct_or_wrong, si_lipreader_preds_correct_or_wrong,
 #         train_matrix, val_matrix, si_matrix)
 
@@ -463,14 +542,20 @@ train_SVM_linear_opt_score, val_SVM_linear_opt_score, si_SVM_linear_opt_score, \
         si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, si_SVM_linear_opt_thresholds, si_SVM_linear_opt_roc_auc , \
         train_SVM_linear_opt_OP_fpr, train_SVM_linear_opt_OP_tpr, \
         val_SVM_linear_opt_OP_fpr, val_SVM_linear_opt_OP_tpr, \
-        si_SVM_linear_opt_OP_fpr, si_SVM_linear_opt_OP_tpr = \
+        si_SVM_linear_opt_OP_fpr, si_SVM_linear_opt_OP_tpr, \
+        train_SVM_linear_opt_optimalOP_fpr, train_SVM_linear_opt_optimalOP_tpr, \
+        val_SVM_linear_opt_optimalOP_fpr, val_SVM_linear_opt_optimalOP_tpr, \
+        si_SVM_linear_opt_optimalOP_fpr, si_SVM_linear_opt_optimalOP_tpr = \
     ROC_SVM_linear_opt['train_SVM_linear_opt_score'], ROC_SVM_linear_opt['val_SVM_linear_opt_score'], ROC_SVM_linear_opt['si_SVM_linear_opt_score'], \
         ROC_SVM_linear_opt['train_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['train_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['train_SVM_linear_opt_roc_auc'].item(), \
         ROC_SVM_linear_opt['val_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['val_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['val_SVM_linear_opt_roc_auc'].item(), \
         ROC_SVM_linear_opt['si_SVM_linear_opt_fpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_tpr'], ROC_SVM_linear_opt['si_SVM_linear_opt_thresholds'], ROC_SVM_linear_opt['si_SVM_linear_opt_roc_auc'].item(), \
         ROC_SVM_linear_opt['train_SVM_linear_opt_OP_fpr'].item(), ROC_SVM_linear_opt['train_SVM_linear_opt_OP_tpr'].item(), \
         ROC_SVM_linear_opt['val_SVM_linear_opt_OP_fpr'].item(), ROC_SVM_linear_opt['val_SVM_linear_opt_OP_tpr'].item(), \
-        ROC_SVM_linear_opt['si_SVM_linear_opt_OP_fpr'].item(), ROC_SVM_linear_opt['si_SVM_linear_opt_OP_tpr'].item()
+        ROC_SVM_linear_opt['si_SVM_linear_opt_OP_fpr'].item(), ROC_SVM_linear_opt['si_SVM_linear_opt_OP_tpr'].item(), \
+        ROC_SVM_linear_opt['train_SVM_linear_opt_optimalOP_fpr'].item(), ROC_SVM_linear_opt['train_SVM_linear_opt_optimalOP_tpr'].item(), \
+        ROC_SVM_linear_opt['val_SVM_linear_opt_optimalOP_fpr'].item(), ROC_SVM_linear_opt['val_SVM_linear_opt_optimalOP_tpr'].item(), \
+        ROC_SVM_linear_opt['si_SVM_linear_opt_optimalOP_fpr'].item(), ROC_SVM_linear_opt['si_SVM_linear_opt_optimalOP_tpr'].item()
 
 
 #####################################
@@ -598,15 +683,97 @@ train_SVM_rbf_opt_score, val_SVM_rbf_opt_score, si_SVM_rbf_opt_score, \
         si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, si_SVM_rbf_opt_thresholds, si_SVM_rbf_opt_roc_auc, \
         train_SVM_rbf_opt_OP_fpr, train_SVM_rbf_opt_OP_tpr, \
         val_SVM_rbf_opt_OP_fpr, val_SVM_rbf_opt_OP_tpr, \
-        si_SVM_rbf_opt_OP_fpr, si_SVM_rbf_opt_OP_tpr = \
+        si_SVM_rbf_opt_OP_fpr, si_SVM_rbf_opt_OP_tpr, \
+        train_SVM_rbf_opt_optimalOP_fpr, train_SVM_rbf_opt_optimalOP_tpr, \
+        val_SVM_rbf_opt_optimalOP_fpr, val_SVM_rbf_opt_optimalOP_tpr, \
+        si_SVM_rbf_opt_optimalOP_fpr, si_SVM_rbf_opt_optimalOP_tpr = \
     ROC_SVM_rbf_opt['train_SVM_rbf_opt_score'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_score'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_score'], \
         ROC_SVM_rbf_opt['train_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['train_SVM_rbf_opt_roc_auc'].item(), \
         ROC_SVM_rbf_opt['val_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['val_SVM_rbf_opt_roc_auc'].item(), \
         ROC_SVM_rbf_opt['si_SVM_rbf_opt_fpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_tpr'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_thresholds'], ROC_SVM_rbf_opt['si_SVM_rbf_opt_roc_auc'].item(), \
         ROC_SVM_rbf_opt['train_SVM_rbf_opt_OP_fpr'].item(), ROC_SVM_rbf_opt['train_SVM_rbf_opt_OP_tpr'].item(), \
         ROC_SVM_rbf_opt['val_SVM_rbf_opt_OP_fpr'].item(), ROC_SVM_rbf_opt['val_SVM_rbf_opt_OP_tpr'].item(), \
-        ROC_SVM_rbf_opt['si_SVM_rbf_opt_OP_fpr'].item(), ROC_SVM_rbf_opt['si_SVM_rbf_opt_OP_tpr'].item()
+        ROC_SVM_rbf_opt['si_SVM_rbf_opt_OP_fpr'].item(), ROC_SVM_rbf_opt['si_SVM_rbf_opt_OP_tpr'].item(), \
+        ROC_SVM_rbf_opt['train_SVM_rbf_opt_optimalOP_fpr'].item(), ROC_SVM_rbf_opt['train_SVM_rbf_opt_optimalOP_tpr'].item(), \
+        ROC_SVM_rbf_opt['val_SVM_rbf_opt_optimalOP_fpr'].item(), ROC_SVM_rbf_opt['val_SVM_rbf_opt_optimalOP_tpr'].item(), \
+        ROC_SVM_rbf_opt['si_SVM_rbf_opt_optimalOP_fpr'].item(), ROC_SVM_rbf_opt['si_SVM_rbf_opt_optimalOP_tpr'].item()
 
+
+#############################################################
+# COMPARISON OF ASSESSORS
+#############################################################
+
+# Train
+plt.subplot(131)
+# Critic
+plt.plot(train_critic_fpr, train_critic_tpr, color='C0', label='C3DCritic; AUC={0:0.4f}'.format(train_critic_roc_auc))
+plt.plot(train_critic_OP_fpr, train_critic_OP_tpr, color='C0', marker='x')
+plt.plot(train_critic_optimalOP_fpr, train_critic_optimalOP_tpr, color='C0', marker='o')
+# LogReg
+plt.plot(train_logReg_unopt_fpr, train_logReg_unopt_tpr, color='C1', label='LogReg; AUC={0:0.4f}'.format(train_logReg_unopt_roc_auc))
+plt.plot(train_logReg_unopt_OP_fpr, train_logReg_unopt_OP_tpr, color='C1', marker='x')
+plt.plot(train_logReg_unopt_optimalOP_fpr, train_logReg_unopt_optimalOP_tpr, color='C1', marker='o')
+# SVM Linear
+plt.plot(train_SVM_linear_opt_fpr, train_SVM_linear_opt_tpr, color='C2', label='SVM - Linear; AUC={0:0.4f}'.format(train_SVM_linear_opt_roc_auc))
+plt.plot(train_SVM_linear_opt_OP_fpr, train_SVM_linear_opt_OP_tpr, color='C2', marker='x')
+plt.plot(train_SVM_linear_opt_optimalOP_fpr, train_SVM_linear_opt_optimalOP_tpr, color='C2', marker='o')
+# SVM RBF
+plt.plot(train_SVM_rbf_opt_fpr, train_SVM_rbf_opt_tpr, color='C3', label='SVM - RBF; AUC={0:0.4f}'.format(train_SVM_rbf_opt_roc_auc))
+plt.plot(train_SVM_rbf_opt_OP_fpr, train_SVM_rbf_opt_OP_tpr, color='C3', marker='x')
+plt.plot(train_SVM_rbf_opt_optimalOP_fpr, train_SVM_rbf_opt_optimalOP_tpr, color='C3', marker='o')
+plt.legend(loc='lower right')
+plt.xlabel('False positive rate')
+plt.ylabel('True positive rate')
+plt.title('Train')
+
+# Val
+plt.subplot(132)
+# Critic
+plt.plot(val_critic_fpr, val_critic_tpr, color='C0', label='C3DCritic; AUC={0:0.4f}'.format(val_critic_roc_auc))
+plt.plot(val_critic_OP_fpr, val_critic_OP_tpr, color='C0', marker='x')
+plt.plot(val_critic_optimalOP_fpr, val_critic_optimalOP_tpr, color='C0', marker='o')
+# LogReg
+plt.plot(val_logReg_unopt_fpr, val_logReg_unopt_tpr, color='C1', label='LogReg; AUC={0:0.4f}'.format(val_logReg_unopt_roc_auc))
+plt.plot(val_logReg_unopt_OP_fpr, val_logReg_unopt_OP_tpr, color='C1', marker='x')
+plt.plot(val_logReg_unopt_optimalOP_fpr, val_logReg_unopt_optimalOP_tpr, color='C1', marker='o')
+# SVM Linear
+plt.plot(val_SVM_linear_opt_fpr, val_SVM_linear_opt_tpr, color='C2', label='SVM - Linear; AUC={0:0.4f}'.format(val_SVM_linear_opt_roc_auc))
+plt.plot(val_SVM_linear_opt_OP_fpr, val_SVM_linear_opt_OP_tpr, color='C2', marker='x')
+plt.plot(val_SVM_linear_opt_optimalOP_fpr, val_SVM_linear_opt_optimalOP_tpr, color='C2', marker='o')
+# SVM RBF
+plt.plot(val_SVM_rbf_opt_fpr, val_SVM_rbf_opt_tpr, color='C3', label='SVM - RBF; AUC={0:0.4f}'.format(val_SVM_rbf_opt_roc_auc))
+plt.plot(val_SVM_rbf_opt_OP_fpr, val_SVM_rbf_opt_OP_tpr, color='C3', marker='x')
+plt.plot(val_SVM_rbf_opt_optimalOP_fpr, val_SVM_rbf_opt_optimalOP_tpr, color='C3', marker='o')
+plt.legend(loc='lower right')
+plt.xlabel('False positive rate')
+plt.ylabel('True positive rate')
+plt.title('Speaker-dependent Test')
+
+# Si
+plt.subplot(133)
+# Critic
+plt.plot(si_critic_fpr, si_critic_tpr, color='C0', label='C3DCritic; AUC={0:0.4f}'.format(si_critic_roc_auc))
+plt.plot(si_critic_OP_fpr, si_critic_OP_tpr, color='C0', marker='x')
+plt.plot(si_critic_optimalOP_fpr, si_critic_optimalOP_tpr, color='C0', marker='o')
+# LogReg
+plt.plot(si_logReg_unopt_fpr, si_logReg_unopt_tpr, color='C1', label='LogReg; AUC={0:0.4f}'.format(si_logReg_unopt_roc_auc))
+plt.plot(si_logReg_unopt_OP_fpr, si_logReg_unopt_OP_tpr, color='C1', marker='x')
+plt.plot(si_logReg_unopt_optimalOP_fpr, si_logReg_unopt_optimalOP_tpr, color='C1', marker='o')
+# SVM Linear
+plt.plot(si_SVM_linear_opt_fpr, si_SVM_linear_opt_tpr, color='C2', label='SVM - Linear; AUC={0:0.4f}'.format(si_SVM_linear_opt_roc_auc))
+plt.plot(si_SVM_linear_opt_OP_fpr, si_SVM_linear_opt_OP_tpr, color='C2', marker='x')
+plt.plot(si_SVM_linear_opt_optimalOP_fpr, si_SVM_linear_opt_optimalOP_tpr, color='C2', marker='o')
+# SVM RBF
+plt.plot(si_SVM_rbf_opt_fpr, si_SVM_rbf_opt_tpr, color='C3', label='SVM - RBF; AUC={0:0.4f}'.format(si_SVM_rbf_opt_roc_auc))
+plt.plot(si_SVM_rbf_opt_OP_fpr, si_SVM_rbf_opt_OP_tpr, color='C3', marker='x')
+plt.plot(si_SVM_rbf_opt_optimalOP_fpr, si_SVM_rbf_opt_optimalOP_tpr, color='C3', marker='o')
+plt.legend(loc='lower right')
+plt.xlabel('False positive rate')
+plt.ylabel('True positive rate')
+plt.title('Speaker-INdependent Test')
+
+plt.suptitle("COMPARISON OF ASSESSORS ON BEST LIPREADER_PREDS")
+plt.show()
 
 #############################################################
 # LIPREADER SELF-TRAIN 10%
