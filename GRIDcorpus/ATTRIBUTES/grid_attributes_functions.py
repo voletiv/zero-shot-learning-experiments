@@ -4,10 +4,106 @@ import cv2
 import dlib
 import glob
 import math
+import matplotlib.pyplot as plt
 import numpy as np
 import tqdm
 
+from scipy import interp
+from sklearn.metrics import roc_curve, auc
+from sklearn.preprocessing import label_binarize
+
 from grid_attributes_params import *
+
+
+def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
+                                 val_correct_or_not, val_probabilities,
+                                 si_correct_or_not, si_probabilities,
+                                 savePlot=False, showPlot=False,
+                                 plot_title='ROC curve of linear SVM unoptimized'):
+    train_fpr, train_tpr, train_roc_auc = compute_ROC_singleclass(train_correct_or_not, train_probabilities)
+    val_fpr, val_tpr, val_roc_auc = compute_ROC_singleclass(val_correct_or_not, val_probabilities)
+    si_fpr, si_tpr, si_roc_auc = compute_ROC_singleclass(si_correct_or_not, si_probabilities)
+    if showPlot or savePlot:
+        plt.plot(train_fpr, train_tpr, label='train; AUC={0:0.4f}'.format(train_roc_auc))
+        plt.plot(val_fpr, val_tpr, label='val; AUC={0:0.4f}'.format(val_roc_auc))
+        plt.plot(si_fpr, si_tpr, label='si; AUC={0:0.4f}'.format(si_roc_auc))
+        plt.legend(loc='lower right')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title(plot_title)
+    if savePlot:
+        plt.savefig('a.png')
+    if showPlot:
+        plt.show()
+    if showPlot or savePlot:
+        plt.close()
+    return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
+
+
+def compute_ROC_singleclass(correct_or_not, probability):
+    # probas_ = classifier.fit(X[train], y[train]).predict_proba(X[test])
+    # Compute ROC curve and area the curve
+    mean_fpr = np.linspace(0, 1, 100)
+    fpr, tpr, thresholds = roc_curve(correct_or_not, probability)
+    # tpr = interp(mean_fpr, fpr, tpr)
+    tpr[0] = 0.0
+    roc_auc = auc(fpr, tpr)
+    return fpr, tpr, roc_auc
+
+
+def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
+                val_word_idx, val_confidences,
+                si_word_idx, si_confidences,
+                savePlot=False, showPlot=False,
+                plot_title='ROC curve of linear SVM unoptimized'):
+    train_fpr, train_tpr, train_roc_auc = compute_ROC_multiclass(label_binarize(train_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), train_confidences, len(GRID_VOCAB_FULL))
+    val_fpr, val_tpr, val_roc_auc = compute_ROC_multiclass(label_binarize(val_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), val_confidences, len(GRID_VOCAB_FULL))
+    si_fpr, si_tpr, si_roc_auc = compute_ROC_multiclass(label_binarize(si_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), si_confidences, len(GRID_VOCAB_FULL))
+    if showPlot or savePlot:
+        plt.plot(train_fpr['micro'], train_tpr['micro'], color='C0', linestyle='-', label='train_micro; AUC={0:0.4f}'.format(train_roc_auc['micro']))
+        plt.plot(train_fpr['macro'], train_tpr['macro'], color='C0', linestyle='--', label='train_macro; AUC={0:0.4f}'.format(train_roc_auc['macro']))
+        plt.plot(val_fpr['micro'], val_tpr['micro'], color='C1', linestyle='-', label='val_micro; AUC={0:0.4f}'.format(val_roc_auc['micro']))
+        plt.plot(val_fpr['macro'], val_tpr['macro'], color='C1', linestyle='--', label='val_macro; AUC={0:0.4f}'.format(val_roc_auc['macro']))
+        plt.plot(si_fpr['micro'], si_tpr['micro'], color='C2', linestyle='-', label='si_micro; AUC={0:0.4f}'.format(si_roc_auc['micro']))
+        plt.plot(si_fpr['macro'], si_tpr['macro'], color='C2', linestyle='--', label='si_macro; AUC={0:0.4f}'.format(si_roc_auc['macro']))
+        plt.legend(loc='lower right')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title(plot_title)
+    if savePlot:
+        plt.savefig('a.png')
+    if showPlot:
+        plt.show()
+    plt.close()
+    return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
+
+
+def compute_ROC_multiclass(y_test, y_score, n_classes):
+    # y_test == nxv one-hot
+    # y_score == nxv full softmax scores
+    fpr = {}
+    tpr = {}
+    roc_auc = {}
+    for i in range(n_classes):
+        fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
+        roc_auc[i] = auc(fpr[i], tpr[i])
+    # MICRO
+    fpr['micro'], tpr['micro'], _ = roc_curve(y_test.ravel(), y_score.ravel())
+    roc_auc["micro"] = auc(fpr["micro"], tpr["micro"])
+    # MACRO
+    # First aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(n_classes)]))
+    # Then interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(n_classes):
+        mean_tpr += interp(all_fpr, fpr[i], tpr[i])
+    # Finally average it
+    mean_tpr /= n_classes
+    # compute AUC
+    fpr['macro'] = all_fpr
+    tpr['macro'] = mean_tpr
+    roc_auc['macro'] = auc(fpr['macro'], tpr['macro'])
+    return fpr, tpr, roc_auc
 
 
 def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
@@ -63,6 +159,58 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
         # # MAKE PREDICTION
         # lipreader_pred_word_idx[i] = np.argmax(lipreader.predict(wordImages))
         # lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex
+
+
+def make_critic_predictions(critic_preds,
+                            lipreader_preds_word_idx,
+                            # word_durations,
+                            dirs,
+                            word_numbers,
+                            word_idx,
+                            critic,
+                            grid_vocab=GRID_VOCAB_FULL,
+                            startNum=0):
+    # dirs = train_val_dirs
+    # word_numbers = train_val_word_numbers
+    # word_idx = train_val_word_idx
+    # detector, predictor = load_detector_and_predictor()
+    # For each data point
+    full_preds_word_idx = label_binarize(lipreader_preds_word_idx, classes=np.arange(len(grid_vocab)))
+    for i, (vidDir, wordNum, wordIndex) in tqdm.tqdm(enumerate(zip(dirs, word_numbers, word_idx)), total=len(dirs)):
+        if i < startNum:
+            continue
+        # GET SEQUENCE OF FRAMES
+        # align file
+        alignFile = vidDir[:-1] + '.align'
+        # Word-Time data
+        wordTimeData = open(alignFile).readlines()
+        # Get the max time of the video
+        maxClipDuration = float(wordTimeData[-1].split(' ')[1])
+        # Remove Silent and Short Pauses
+        for line in wordTimeData:
+            if 'sil' in line or 'sp' in line:
+                wordTimeData.remove(line)
+        # Find the start and end frame for this word
+        wordStartFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
+                                    0]) / maxClipDuration * FRAMES_PER_VIDEO)
+        wordEndFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
+                                 1]) / maxClipDuration * FRAMES_PER_VIDEO)
+        # # Word duration
+        # word_durations[i] = wordEndFrame - wordStartFrame + 1
+        # All mouth file names of video
+        mouthFiles = sorted(glob.glob(os.path.join(vidDir, '*Mouth*.jpg')))
+        # Note the file names of the word
+        wordMouthFiles = mouthFiles[wordStartFrame:wordEndFrame + 1]
+        # Initialize the array of images for this word
+        wordImages = np.zeros((1, FRAMES_PER_WORD, NUM_OF_MOUTH_PIXELS))
+        # For each frame of this word
+        for f, wordMouthFrame in enumerate(wordMouthFiles[:FRAMES_PER_WORD]):
+            # in reverse order of frames. eg. If there are 7 frames:
+            # 0 0 0 0 0 0 0 7 6 5 4 3 2 1
+            wordImages[0][-f - 1] = np.reshape(cv2.imread(wordMouthFrame,
+                                                          0) / 255., (NUM_OF_MOUTH_PIXELS,))
+        # SAVE ENCODER FEATURE
+        critic_preds[i] = critic.predict([wordImages, np.reshape(full_preds_word_idx[i], (1, len(grid_vocab)))])
 
 
 def load_detector_and_predictor(verbose=False):

@@ -3,8 +3,6 @@ import optunity
 import optunity.metrics
 
 from sklearn.svm import SVC
-from sklearn.metrics import roc_curve, auc
-from scipy import interp
 
 ########################################
 # ATTRIBUTES
@@ -28,19 +26,19 @@ from scipy import interp
 # LOAD BASICS
 #############################################################
 
-grid_attributes_dict = np.load(os.path.join(GRID_ATTR_DIR, 'grid_attributes_dict.npy')).item()
+grid_basics = np.load('grid_basics.npz').item()
 
-train_dirs = grid_attributes_dict['train_dirs']
-train_word_numbers = grid_attributes_dict['train_word_numbers']
-train_word_idx = grid_attributes_dict['train_word_idx']
+train_dirs = grid_basics['train_dirs']
+train_word_numbers = grid_basics['train_word_numbers']
+train_word_idx = grid_basics['train_word_idx']
 
-val_dirs = grid_attributes_dict['val_dirs']
-val_word_numbers = grid_attributes_dict['val_word_numbers']
-val_word_idx = grid_attributes_dict['val_word_idx']
+val_dirs = grid_basics['val_dirs']
+val_word_numbers = grid_basics['val_word_numbers']
+val_word_idx = grid_basics['val_word_idx']
 
-si_dirs = grid_attributes_dict['si_dirs']
-si_word_numbers = grid_attributes_dict['si_word_numbers']
-si_word_idx = grid_attributes_dict['si_word_idx']
+si_dirs = grid_basics['si_dirs']; si_dirs = si_dirs[:12000]
+si_word_numbers = grid_basics['si_word_numbers']; si_word_numbers = si_word_numbers[:12000]
+si_word_idx = grid_basics['si_word_idx']; si_word_idx = si_word_idx[:12000]
 
 #############################################################
 # LOAD ATTRIBUTES
@@ -48,22 +46,12 @@ si_word_idx = grid_attributes_dict['si_word_idx']
 
 train_grid_attributes = np.load('train_grid_attributes_matrix.npy')
 val_grid_attributes = np.load('val_grid_attributes_matrix.npy')
-si_grid_attributes = np.load('si_grid_attributes_matrix.npy')
+si_grid_attributes = np.load('si_grid_attributes_matrix.npy'); si_grid_attributes = si_grid_attributes[:12000]
 
 # Normalization
 train_grid_attributes_norm = (train_grid_attributes - train_grid_attributes.min(0)) / train_grid_attributes.ptp(0)
 val_grid_attributes_norm = (val_grid_attributes - val_grid_attributes.min(0)) / val_grid_attributes.ptp(0)
-si_grid_attributes_norm = (si_grid_attributes - si_grid_attributes.min(0)) / si_grid_attributes.ptp(0); si_grid_attributes_matrix[:, 1] = 1
-
-#############################################################
-# LOAD PREDS
-#############################################################
-
-lipreader_preds = np.load('lipreader_preds.npz')
-
-train_lipreader_preds = lipreader_preds['train_lipreader_preds']
-val_lipreader_preds = lipreader_preds['val_lipreader_preds']
-si_lipreader_preds = lipreader_preds['si_lipreader_preds']
+si_grid_attributes_norm = (si_grid_attributes - si_grid_attributes.min(0)) / si_grid_attributes.ptp(0); si_grid_attributes_norm[:, 1] = 1.
 
 #############################################################
 # LOAD CORRECT_OR_NOT
@@ -73,110 +61,71 @@ lipreader_preds_wordidx_and_correctorwrong = np.load('lipreader_preds_wordidx_an
 
 train_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_word_idx']
 val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_word_idx']
-si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx']
+si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx']; si_lipreader_preds_word_idx = si_lipreader_preds_word_idx[:12000]
 
 train_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_correct_or_wrong']
 val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong']
-si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']
+si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']; si_lipreader_preds_correct_or_wrong = si_lipreader_preds_correct_or_wrong[:12000]
 
 np.sum(train_lipreader_preds_correct_or_wrong)/len(train_lipreader_preds_correct_or_wrong)
 np.sum(val_lipreader_preds_correct_or_wrong)/len(val_lipreader_preds_correct_or_wrong)
 np.sum(si_lipreader_preds_correct_or_wrong)/len(si_lipreader_preds_correct_or_wrong)
 
 #############################################################
+# LOAD LIPREADER PREDS
+#############################################################
+
+lipreader_preds = np.load('lipreader_preds.npz')
+
+train_lipreader_preds = lipreader_preds['train_lipreader_preds']
+val_lipreader_preds = lipreader_preds['val_lipreader_preds']
+si_lipreader_preds = lipreader_preds['si_lipreader_preds']; si_lipreader_preds = si_lipreader_preds[:12000]
+
+#############################################################
 # LIPREADER ROC
 #############################################################
 
-train_fpr = {}
-train_tpr = {}
-train_roc_auc = {}
-val_fpr = {}
-val_tpr = {}
-val_roc_auc = {}
-si_fpr = {}
-si_tpr = {}
-si_roc_auc = {}
+# Compute ROC
+lipreader_train_fpr, lipreader_train_tpr, lipreader_train_roc_auc, \
+        lipreader_val_fpr, lipreader_val_tpr, lipreader_val_roc_auc, \
+        lipreader_si_fpr, lipreader_si_tpr, lipreader_si_roc_auc = \
+    compute_ROC_grid_multiclass(train_word_idx, train_lipreader_preds,
+        val_word_idx, val_lipreader_preds,
+        si_word_idx, si_lipreader_preds,
+        savePlot=True, showPlot=True,
+        plot_title='Baseline ROC curve of lipreader')
 
-# Train
-train_lipreader_preds_confidence = np.max(train_lipreader_preds, axis=1)
-# Val
-val_lipreader_preds_confidence = np.max(val_lipreader_preds, axis=1)
-# Si
-si_lipreader_preds_confidence = np.max(si_lipreader_preds, axis=1)
+np.savez('ROC_baseline_lipreader', lipreader_train_fpr=lipreader_train_fpr, lipreader_train_tpr=lipreader_train_tpr, lipreader_train_roc_auc=lipreader_train_roc_auc,
+    lipreader_val_fpr=lipreader_val_fpr, lipreader_val_tpr=lipreader_val_tpr, lipreader_val_roc_auc=lipreader_val_roc_auc,
+    lipreader_si_fpr=lipreader_si_fpr, lipreader_si_tpr=lipreader_si_tpr, lipreader_si_roc_auc=lipreader_si_roc_auc)
 
-# MICRO ROC
-# Train
-train_fpr["micro"], train_tpr["micro"], _ = roc_curve(train_lipreader_preds_correct_or_wrong, train_lipreader_preds_confidence)
-train_roc_auc["micro"] = auc(train_fpr["micro"], train_tpr["micro"])
-# Val
-val_fpr["micro"], val_tpr["micro"], _ = roc_curve(val_lipreader_preds_correct_or_wrong, val_lipreader_preds_confidence)
-val_roc_auc["micro"] = auc(val_fpr["micro"], val_tpr["micro"])
-# Si
-si_fpr["micro"], si_tpr["micro"], _ = roc_curve(si_lipreader_preds_correct_or_wrong, si_lipreader_preds_confidence)
-si_roc_auc["micro"] = auc(si_fpr["micro"], si_tpr["micro"])
+#############################################################
+# LOAD CRITIC PREDS
+#############################################################
 
-# MACRO ROC
-for i in range(len(GRID_VOCAB_FULL)):
-    # TRAIN
-    train_word_binary = np.where(train_word_idx == i)
-    train_fpr[i], train_tpr[i], _ = roc_curve(train_lipreader_preds_correct_or_wrong[train_word_binary], train_lipreader_preds_confidence[train_word_binary])
-    train_roc_auc[i] = auc(train_fpr[i], train_tpr[i])
-    # VAL
-    val_word_binary = np.where(val_word_idx == i)
-    val_fpr[i], val_tpr[i], _ = roc_curve(val_lipreader_preds_correct_or_wrong[val_word_binary], val_lipreader_preds_confidence[val_word_binary])
-    # To save from all_True, i.e. fpr = nan
-    val_fpr[i][np.argwhere(np.isnan(val_fpr[i]))] = 1.
-    val_roc_auc[i] = auc(val_fpr[i], val_tpr[i])
-    # SI
-    si_word_binary = np.where(si_word_idx == i)
-    si_fpr[i], si_tpr[i], _ = roc_curve(si_lipreader_preds_correct_or_wrong[si_word_binary], si_lipreader_preds_confidence[si_word_binary])
-    si_roc_auc[i] = auc(si_fpr[i], si_tpr[i])
+critic_preds = np.load('critic_preds.npz')
 
+train_critic_preds = critic_preds['train_critic_preds']
+val_critic_preds = critic_preds['val_critic_preds']
+si_critic_preds = critic_preds['si_critic_preds']; si_critic_preds = si_critic_preds[:12000]
 
-# First aggregate all false positive rates
-train_all_fpr = np.unique(np.concatenate([train_fpr[i] for i in range(len(GRID_VOCAB_FULL))]))
-val_all_fpr = np.unique(np.concatenate([val_fpr[i] for i in range(len(GRID_VOCAB_FULL))]))
-si_all_fpr = np.unique(np.concatenate([si_fpr[i] for i in range(len(GRID_VOCAB_FULL))]))
+#############################################################
+# CRITIC ROC
+#############################################################
 
-# Then interpolate all ROC curves at this points
-train_mean_tpr = np.zeros_like(train_all_fpr)
-val_mean_tpr = np.zeros_like(val_all_fpr)
-si_mean_tpr = np.zeros_like(si_all_fpr)
-for i in range(len(GRID_VOCAB_FULL)):
-    train_mean_tpr += interp(train_all_fpr, train_fpr[i], train_tpr[i])
-    val_mean_tpr += interp(val_all_fpr, val_fpr[i], val_tpr[i])
-    si_mean_tpr += interp(si_all_fpr, si_fpr[i], si_tpr[i])
+# Compute ROC
+train_critic_fpr, train_critic_tpr, train_critic_roc_auc, \
+        val_critic_fpr, val_critic_tpr, val_critic_roc_auc, \
+        si_critic_fpr, si_critic_tpr, si_critic_roc_auc = \
+    compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_critic_preds,
+        val_lipreader_preds_correct_or_wrong, val_critic_preds,
+        si_lipreader_preds_correct_or_wrong, si_critic_preds,
+        savePlot=True, showPlot=True,
+        plot_title='ROC curve of C3DCritic')
 
-# Finally average it
-train_mean_tpr /= len(GRID_VOCAB_FULL)
-val_mean_tpr /= len(GRID_VOCAB_FULL)
-si_mean_tpr /= len(GRID_VOCAB_FULL)
-
-# Compute AUC
-train_fpr["macro"] = train_all_fpr
-val_fpr["macro"] = val_all_fpr
-si_fpr["macro"] = si_all_fpr
-train_tpr["macro"] = train_mean_tpr
-val_tpr["macro"] = val_mean_tpr
-si_tpr["macro"] = si_mean_tpr
-train_roc_auc["macro"] = auc(train_fpr["macro"], train_tpr["macro"])
-val_roc_auc["macro"] = auc(val_fpr["macro"], val_tpr["macro"])
-si_roc_auc["macro"] = auc(si_fpr["macro"], si_tpr["macro"])
-
-plt.plot(train_fpr['micro'], train_tpr['micro'], color='C0', linestyle='-', label='micro_train')
-plt.plot(train_fpr['macro'], train_tpr['macro'], color='C0', linestyle='--', label='macro_train')
-plt.plot(val_fpr['micro'], val_tpr['micro'], color='C1', linestyle='-', label='micro_val')
-plt.plot(val_fpr['macro'], val_tpr['macro'], color='C1', linestyle='--', label='macro_val')
-plt.plot(si_fpr['micro'], si_tpr['micro'], color='C2', linestyle='-', label='micro_si')
-plt.plot(si_fpr['macro'], si_tpr['macro'], color='C2', linestyle='--', label='macro_si')
-plt.legend(loc='best')
-plt.xlabel('False positive rate')
-plt.ylabel('True positive rate')
-plt.title('Baseline ROC curve of Lipreader')
-plt.show()
-
-np.savez('ROC_baseline_lipreader', train_fpr, train_tpr, val_fpr, val_tpr, si_fpr, si_tpr)
-
+np.savez('ROC_critic', train_critic_fpr=train_critic_fpr, train_critic_tpr=train_critic_tpr, train_critic_roc_auc=train_critic_roc_auc, \
+    val_critic_fpr=val_critic_fpr, val_critic_tpr=val_critic_tpr, val_critic_roc_auc=val_critic_roc_auc, \
+    si_critic_fpr=si_critic_fpr, si_critic_tpr=si_critic_tpr, si_critic_roc_auc=si_critic_roc_auc)
 
 #############################################################
 # TRAIN SVM
@@ -186,14 +135,36 @@ train_matrix = train_grid_attributes_norm[:, 3:]
 val_matrix = val_grid_attributes_norm[:, 3:]
 si_matrix = si_grid_attributes_norm[:, 3:]
 
-# LINEAR
-clf = SVC(kernel='linear', class_weight='balanced')
+# LINEAR UNOPT
 
+clf = SVC(kernel='linear', class_weight='balanced', probability=True)
 clf.fit(train_matrix, train_lipreader_preds_correct_or_wrong)
+
+# Acc
 clf.score(train_matrix, train_lipreader_preds_correct_or_wrong)
 clf.score(val_matrix, val_lipreader_preds_correct_or_wrong)
 clf.score(si_matrix, si_lipreader_preds_correct_or_wrong)
 
+# Scores
+train_linear_unopt_svm_score = clf.decision_function(train_matrix)
+val_linear_unopt_svm_score = clf.decision_function(val_matrix)
+si_linear_unopt_svm_score = clf.decision_function(si_matrix)
+
+# Compute ROC
+linearSVM_unopt_train_fpr, linearSVM_unopt_train_tpr, linearSVM_unopt_train_roc_auc, \
+        linearSVM_unopt_val_fpr, linearSVM_unopt_val_tpr, linearSVM_unopt_val_roc_auc, \
+        linearSVM_unopt_si_fpr, linearSVM_unopt_si_tpr, linearSVM_unopt_si_roc_auc = \
+    compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_linear_unopt_svm_score,
+        val_lipreader_preds_correct_or_wrong, val_linear_unopt_svm_score,
+        si_lipreader_preds_correct_or_wrong, si_linear_unopt_svm_score,
+        savePlot=True, showPlot=True,
+        plot_title='ROC curve of linear SVM (unoptimized)')
+
+np.savez('ROC_linearSVM_unopt', linearSVM_unopt_train_fpr=linearSVM_unopt_train_fpr, linearSVM_unopt_train_tpr=linearSVM_unopt_train_tpr, linearSVM_unopt_train_roc_auc=linearSVM_unopt_train_roc_auc, \
+    linearSVM_unopt_val_fpr=linearSVM_unopt_val_fpr, linearSVM_unopt_val_tpr=linearSVM_unopt_val_tpr, linearSVM_unopt_val_roc_auc=linearSVM_unopt_val_roc_auc, \
+    linearSVM_unopt_si_fpr=linearSVM_unopt_si_fpr, linearSVM_unopt_si_tpr=linearSVM_unopt_si_tpr, linearSVM_unopt_si_roc_auc=linearSVM_unopt_si_roc_auc)
+
+# LINEAR OPT
 
 # score function: twice iterated 10-fold cross-validated accuracy
 @optunity.cross_validated(x=train_matrix, y=train_lipreader_preds_correct_or_wrong, num_folds=2, num_iter=1)
@@ -202,35 +173,105 @@ def svm_linear_auc(x_train, y_train, x_test, y_test, logC, logGamma):
     decision_values = model.decision_function(x_test)
     return optunity.metrics.roc_auc(y_test, decision_values)
 
-
-@optunity.cross_validated(x=train_matrix, y=train_lipreader_preds_correct_or_wrong, num_folds=2, num_iter=1)
-def svm_rbf_auc(x_train, y_train, x_test, y_test, logC, logGamma):
-    model = SVC(kernel='rbf', C=10 ** logC, gamma=10 ** logGamma, class_weight='balanced').fit(x_train, y_train)
-    decision_values = model.decision_function(x_test)
-    return optunity.metrics.roc_auc(y_test, decision_values)
-
-# perform tuning on linear
+# # perform tuning on linear
 # hps_linear, _, _ = optunity.maximize(svm_linear_auc, num_evals=10, logC=[-5, 2], logGamma=[-5, 1])
-hps_linear = {'logC': 1.14892578125, 'logGamma': -4.9794921875}
-
-# perform tuning on rbf
-hps_rbf, _, _ = optunity.maximize(svm_rbf_auc, num_evals=10, logC=[-5, 2], logGamma=[-5, 1])
+# hps_linear = {'logC': 1.14892578125, 'logGamma': -4.9794921875}
+hps_linear = {'logC': -1.07275390625, 'logGamma': -0.8486328125}
 
 # train model on the full training set with tuned hyperparameters
-optimal_SVM_linear = SVC(kernel='linear', C=10 ** hps_linear['logC'], gamma=10 ** hps_linear['logGamma'], class_weight='balanced').fit(train_matrix, train_lipreader_preds_correct_or_wrong)
+optimal_SVM_linear = SVC(kernel='linear', C=10 ** hps_linear['logC'], gamma=10 ** hps_linear['logGamma'], class_weight='balanced', probability=True).fit(train_matrix, train_lipreader_preds_correct_or_wrong)
 
-optimal_SVM_linear_w = SVC(kernel='linear', C=10 ** hps_rbf['logC'], gamma=10 ** hps_rbf['logGamma'], class_weight='balanced').fit(train_matrix, train_lipreader_preds_correct_or_wrong)
-
-
+# Acc
 optimal_SVM_linear.score(train_matrix, train_lipreader_preds_correct_or_wrong)
 optimal_SVM_linear.score(val_matrix, val_lipreader_preds_correct_or_wrong)
 optimal_SVM_linear.score(si_matrix, si_lipreader_preds_correct_or_wrong)
 
+# Scores
+train_linearSVM_opt_score = optimal_SVM_linear.decision_function(train_matrix)
+val_linearSVM_opt_score = optimal_SVM_linear.decision_function(val_matrix)
+si_linearSVM_opt_score = optimal_SVM_linear.decision_function(si_matrix)
 
-optimal_SVM_linear_w.score(train_matrix, train_lipreader_preds_correct_or_wrong)
-optimal_SVM_linear_w.score(val_matrix, val_lipreader_preds_correct_or_wrong)
-optimal_SVM_linear_w.score(si_matrix, si_lipreader_preds_correct_or_wrong)
+# Compute ROC
+train_linearSVM_opt_fpr, train_linearSVM_opt_tpr, train_linearSVM_opt_roc_auc, \
+        val_linearSVM_opt_fpr, val_linearSVM_opt_tpr, val_linearSVM_opt_roc_auc, \
+        si_linearSVM_opt_fpr, si_linearSVM_opt_tpr, si_linearSVM_opt_roc_auc = \
+    compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_linearSVM_opt_score,
+        val_lipreader_preds_correct_or_wrong, val_linearSVM_opt_score,
+        si_lipreader_preds_correct_or_wrong, si_linearSVM_opt_score,
+        savePlot=True, showPlot=True,
+        plot_title='ROC curve of linear SVM (optimized)')
 
+np.savez('ROC_linearSVM_opt', train_linearSVM_opt_fpr=train_linearSVM_opt_fpr, train_linearSVM_opt_tpr=train_linearSVM_opt_tpr, train_linearSVM_opt_roc_auc=train_linearSVM_opt_roc_auc, \
+    val_linearSVM_opt_fpr=val_linearSVM_opt_fpr, val_linearSVM_opt_tpr=val_linearSVM_opt_tpr, val_linearSVM_opt_roc_auc=val_linearSVM_opt_roc_auc, \
+    si_linearSVM_opt_fpr=si_linearSVM_opt_fpr, si_linearSVM_opt_tpr=si_linearSVM_opt_tpr, si_linearSVM_opt_roc_auc=si_linearSVM_opt_roc_auc)
+
+
+# RBF OPT
+
+# @optunity.cross_validated(x=train_matrix, y=train_lipreader_preds_correct_or_wrong, num_folds=2, num_iter=1)
+# def svm_rbf_auc(x_train, y_train, x_test, y_test, logC, logGamma):
+#     model = SVC(kernel='rbf', C=10 ** logC, gamma=10 ** logGamma, class_weight='balanced').fit(x_train, y_train)
+#     decision_values = model.decision_function(x_test)
+#     return optunity.metrics.roc_auc(y_test, decision_values)
+
+# # perform tuning on rbf
+# hps_rbf, _, _ = optunity.maximize(svm_rbf_auc, num_evals=10, logC=[-5, 2], logGamma=[-5, 1])
+hps_rbf = {'logC': 0.62255859375, 'logGamma': 0.1357421875}
+
+# train model on the full training set with tuned hyperparameters
+optimal_SVM_rbf = SVC(kernel='rbf', C=10 ** hps_rbf['logC'], gamma=10 ** hps_rbf['logGamma'], class_weight='balanced', probability=True).fit(train_matrix, train_lipreader_preds_correct_or_wrong)
+
+# Acc
+optimal_SVM_rbf.score(train_matrix, train_lipreader_preds_correct_or_wrong)
+optimal_SVM_rbf.score(val_matrix, val_lipreader_preds_correct_or_wrong)
+optimal_SVM_rbf.score(si_matrix, si_lipreader_preds_correct_or_wrong)
+# >>> # Acc
+# ... optimal_SVM_rbf.score(train_matrix, train_lipreader_preds_correct_or_wrong)
+# 0.5853943939152173
+# >>> optimal_SVM_rbf.score(val_matrix, val_lipreader_preds_correct_or_wrong)
+# 0.71793037672866
+# >>> optimal_SVM_rbf.score(si_matrix, si_lipreader_preds_correct_or_wrong)
+# 0.37216666666666665
+
+# Scores
+train_rbfSVM_opt_score = optimal_SVM_rbf.decision_function(train_matrix)
+val_rbfSVM_opt_score = optimal_SVM_rbf.decision_function(val_matrix)
+si_rbfSVM_opt_score = optimal_SVM_rbf.decision_function(si_matrix)
+
+# Compute ROC
+train_rbfSVM_opt_fpr, train_rbfSVM_opt_tpr, train_rbfSVM_opt_roc_auc, \
+        val_rbfSVM_opt_fpr, val_rbfSVM_opt_tpr, val_rbfSVM_opt_roc_auc, \
+        si_rbfSVM_opt_fpr, si_rbfSVM_opt_tpr, si_rbfSVM_opt_roc_auc = \
+    compute_ROC_grid_singleclass(train_lipreader_preds_correct_or_wrong, train_rbfSVM_opt_score,
+        val_lipreader_preds_correct_or_wrong, val_rbfSVM_opt_score,
+        si_lipreader_preds_correct_or_wrong, si_rbfSVM_opt_score,
+        savePlot=False, showPlot=False,
+        plot_title='ROC curve of RBF SVM optimized')
+
+np.savez('ROC_rbfSVM_opt', train_rbfSVM_opt_fpr=train_rbfSVM_opt_fpr, train_rbfSVM_opt_tpr=train_rbfSVM_opt_tpr, train_rbfSVM_opt_roc_auc=train_rbfSVM_opt_roc_auc, \
+    val_rbfSVM_opt_fpr=val_rbfSVM_opt_fpr, val_rbfSVM_opt_tpr=val_rbfSVM_opt_tpr, val_rbfSVM_opt_roc_auc=val_rbfSVM_opt_roc_auc, \
+    si_rbfSVM_opt_fpr=si_rbfSVM_opt_fpr, si_rbfSVM_opt_tpr=si_rbfSVM_opt_tpr, si_rbfSVM_opt_roc_auc=si_rbfSVM_opt_roc_auc)
+
+ROC_rbfSVM_opt = np.load('ROC_rbfSVM_opt.npz')
+
+train_rbfSVM_opt_fpr, train_rbfSVM_opt_tpr, train_rbfSVM_opt_roc_auc, \
+        val_rbfSVM_opt_fpr, val_rbfSVM_opt_tpr, val_rbfSVM_opt_roc_auc, \
+        si_rbfSVM_opt_fpr, si_rbfSVM_opt_tpr, si_rbfSVM_opt_roc_auc = \
+    ROC_rbfSVM_opt['train_rbfSVM_opt_fpr'], ROC_rbfSVM_opt['train_rbfSVM_opt_tpr'], ROC_rbfSVM_opt['train_rbfSVM_opt_roc_auc'].item(), \
+        ROC_rbfSVM_opt['val_rbfSVM_opt_fpr'], ROC_rbfSVM_opt['val_rbfSVM_opt_tpr'], ROC_rbfSVM_opt['val_rbfSVM_opt_roc_auc'].item(), \
+        ROC_rbfSVM_opt['si_rbfSVM_opt_fpr'], ROC_rbfSVM_opt['si_rbfSVM_opt_tpr'], ROC_rbfSVM_opt['si_rbfSVM_opt_roc_auc'].item()
+
+plt.plot(train_rbfSVM_opt_fpr, train_rbfSVM_opt_tpr, label='train; AUC={0:0.4f}'.format(train_rbfSVM_opt_roc_auc))
+plt.plot(val_rbfSVM_opt_fpr, val_rbfSVM_opt_tpr, label='val; AUC={0:0.4f}'.format(val_rbfSVM_opt_roc_auc))
+plt.plot(si_rbfSVM_opt_fpr, si_rbfSVM_opt_tpr, label='si; AUC={0:0.4f}'.format(si_rbfSVM_opt_roc_auc))
+plt.legend(loc='lower right')
+plt.xlabel('False positive rate')
+plt.ylabel('True positive rate')
+plt.title('ROC curve of RBF SVM optimized')
+
+#############################################################
+# LIPREADER SELF-TRAIN 10%
+#############################################################
 
 
 

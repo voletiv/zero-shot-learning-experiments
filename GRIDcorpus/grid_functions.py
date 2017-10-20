@@ -9,6 +9,7 @@ import tqdm
 from grid_params import *
 from lipreader_params import *
 from LSTM_lipreader_function import *
+from C3D_critic_function import *
 from zsl_functions import *
 
 from skimage.transform import resize
@@ -253,3 +254,21 @@ def make_LSTM_lipreader_model():
                          LSTMactiv=LSTMactiv, encodedDim=encodedDim,
                          encodedActiv=encodedActiv, optimizer=optimizer, lr=lr)
     return LSTMLipReaderModel, LSTMEncoder, fileNamePre
+
+
+def load_C3DCritic():
+    C3DCiticModel = make_C3DCritic_model()
+    C3DCiticModel.load_weights(CRITIC_MODEL_FILE)
+    return C3DCiticModel
+
+def make_C3DCritic_model():
+    reverseImageSequence = True
+    wordsVocabSize = 51
+    C3DCiticModel, _ = C3D_critic(layer1Filters=4, layer2Filters=4,
+        layer3Filters=4, fc1Nodes=4, vidFeaturesDim=16, useWord=False,
+        wordDim=1, useEncWord=False, encWordDim=64, useEncWordFc=False,
+        encWordFcDim=10, useOneHotWord=True, oneHotWordDim=wordsVocabSize,
+        useOneHotWordFc=True, oneHotWordFcDim=16, usePredWordDis=False,
+        predWordDisDim=wordsVocabSize, outputHDim=64, lr=1e-3)
+    return C3DCiticModel
+

@@ -393,3 +393,22 @@ np.save('si_grid_attributes_matrix', si_grid_attributes)
 
 # np.savez('lipreader_preds', train_lipreader_preds=train_lipreader_preds, val_lipreader_preds=val_lipreader_preds, si_lipreader_preds=si_lipreader_preds)
 
+
+# #############################################################
+# # CRITIC PREDS
+# #############################################################
+
+critic_preds = np.load('critic_preds.npz')
+
+train_val_critic_preds = critic_preds['train_val_critic_preds']
+si1314_critic_preds = critic_preds['si1314_critic_preds']
+
+train_critic_preds = train_val_critic_preds[train_dirs_binary]
+val_critic_preds = train_val_critic_preds[val_dirs_binary]
+si_critic_preds = np.append(si1314_critic_preds, train_val_critic_preds[si_dirs_binary])
+
+np.savez('critic_preds', train_val_critic_preds=train_val_critic_preds, si1314_critic_preds=si1314_critic_preds,
+    train_critic_preds=train_critic_preds, val_critic_preds=val_critic_preds, si_critic_preds=si_critic_preds)
+
+
+
