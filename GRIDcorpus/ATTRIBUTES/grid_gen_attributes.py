@@ -424,38 +424,57 @@ np.savez('critic_preds', train_val_critic_preds=train_val_critic_preds, si1314_c
 LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
 LSTMLipreaderModel.load_weights(os.path.join(LIPREADER_DIR, 'SELF-TRAINING', 'LSTMLipReader-revSeq-Mask-LSTMh256-tanh-depth2-enc64-relu-adam-1e-03-tMouth-valMouth-NOmeanSub-GRIDcorpus-s0107-10-si-s1314-10PercentSelfTraining-LRthresh0.90-iter00-epoch079-tl1.1377-ta0.6460-vl1.5886-va0.5360-sil3.9002-sia0.2181.hdf5'))
 
-# Make 64-dim features
-train_val_10pc_lipreader_64_features = np.zeros((len(train_val_dirs), 64))
+train_val_lipreader_10pc_64_features = np.zeros((len(train_val_dirs), 64))
+train_val_lipreader_10pc_preds = np.zeros((len(train_val_dirs), len(GRID_VOCAB_FULL)))
+train_val_lipreader_10pc_preds_word_idx = np.zeros(len(train_val_dirs), dtype=int)
+train_val_lipreader_10pc_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
 make_LSTMlipreader_predictions(train_val_10pc_lipreader_64_features,
-                               train_val_10pc_lipreader_64_features,
-                               train_val_dirs,
-                               train_val_word_numbers,
-                               train_val_word_idx,
-                               LSTMLipreaderEncoder,
-                               GRID_VOCAB_FULL,
-                               0)
-
-si1314_lipreader_10pc_64_features = np.zeros((len(si1314_dirs), 64))
-make_LSTMlipreader_predictions(si1314_lipreader_10pc_64_features,
-                               si1314_lipreader_10pc_64_features,
-                               si1314_dirs,
-                               si1314_word_numbers,
-                               si1314_word_idx,
-                               LSTMLipreaderEncoder,
-                               GRID_VOCAB_FULL,
-                               0)
-
-np.savez('lipreader_10pc_64_features', train_val_10pc_lipreader_64_features=train_val_10pc_lipreader_64_features, si1314_lipreader_10pc_64_features=si1314_lipreader_10pc_64_features)
-
-train_val_lipreader_preds = np.zeros((len(train_val_dirs), len(GRID_VOCAB_FULL)))
-train_val_lipreader_pred_word_idx = np.zeros(len(train_val_dirs), dtype=int)
-train_val_lipreader_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
-make_LSTMlipreader_predictions(train_val_lipreader_preds,
-                               train_val_lipreader_pred_word_idx,
-                               train_val_lipreader_preds_correct_or_wrong,
+                               train_val_10pc_lipreader_preds,
+                               train_val_10pc_lipreader_pred_word_idx,
+                               train_val_10pc_lipreader_preds_correct_or_wrong,
                                train_val_dirs,
                                train_val_word_numbers,
                                train_val_word_idx,
                                LSTMLipreaderModel,
+                               LSTMLipreaderEncoder,
                                GRID_VOCAB_FULL,
                                0)
+
+si1314_lipreader_10pc_64_features = np.zeros((len(train_val_dirs), 64))
+si1314_lipreader_10pc_preds = np.zeros((len(train_val_dirs), len(GRID_VOCAB_FULL)))
+si1314_lipreader_10pc_preds_word_idx = np.zeros(len(train_val_dirs), dtype=int)
+si1314_lipreader_10pc_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
+make_LSTMlipreader_predictions(si1314_10pc_lipreader_64_features,
+                               si1314_10pc_lipreader_preds,
+                               si1314_10pc_lipreader_pred_word_idx,
+                               si1314_10pc_lipreader_preds_correct_or_wrong,
+                               si1314_dirs,
+                               si1314_word_numbers,
+                               si1314_word_idx,
+                               LSTMLipreaderModel,
+                               LSTMLipreaderEncoder,
+                               GRID_VOCAB_FULL,
+                               0)
+
+
+si1314_lipreader_10pc_preds = np.zeros((len(train_val_dirs), len(GRID_VOCAB_FULL)))
+si1314_lipreader_10pc_preds_word_idx = np.zeros(len(train_val_dirs), dtype=int)
+si1314_lipreader_10pc_preds_correct_or_wrong = np.zeros(len(si1314_dirs), dtype=bool)
+make_LSTMlipreader_predictions(si1314_lipreader_10pc_preds,
+                               si1314_lipreader_10pc_pred_word_idx,
+                               si1314_lipreader_10pc_preds_correct_or_wrong,
+                               si1314_dirs,
+                               si1314_word_numbers,
+                               si1314_word_idx,
+                               LSTMLipreaderModel,
+                               GRID_VOCAB_FULL,
+                               0)
+
+np.savez('lipreader_10pc_preds_predWordIdx_correctOrNot',
+    train_val_lipreader_10pc_preds=train_val_lipreader_10pc_preds,
+    train_val_lipreader_10pc_preds_word_idx=train_val_lipreader_10pc_preds_word_idx,
+    train_val_lipreader_10pc_preds_correct_or_wrong=train_val_lipreader_10pc_preds_correct_or_wrong,
+    si1314_lipreader_10pc_preds=si1314_lipreader_10pc_preds,
+    si1314_lipreader_10pc_preds_word_idx=si1314_lipreader_10pc_preds_word_idx,
+    si1314_lipreader_10pc_preds_correct_or_wrong=si1314_lipreader_10pc_preds_correct_or_wrong)
+

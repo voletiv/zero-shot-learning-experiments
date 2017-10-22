@@ -173,6 +173,46 @@ def compute_ROC_singleclass(correct_or_not, probability):
     return fpr, tpr, thresholds, roc_auc
 
 
+def compute_pc_ROC_grid_multiclass_mine(train_l_word_idx, train_l_confidences,
+                                        train_unl_word_idx, train_unl_confidences,
+                                        val_word_idx, val_confidences,
+                                        si_word_idx, si_confidences,
+                                        train_l_fpr_op=None, train_l_tpr_op=None,
+                                        train_unl_fpr_op=None, train_unl_tpr_op=None,
+                                        val_fpr_op=None, val_tpr_op=None,
+                                        si_fpr_op=None, si_tpr_op=None,
+                                        savePlot=False, showPlot=False,
+                                        plot_title=''):
+    train_l_fpr, train_l_tpr, train_l_thresholds, train_l_roc_auc = compute_ROC_singleclass(np.append(np.ones(len(train_l_word_idx)), np.zeros(len(train_l_word_idx))), np.append(np.array([train_l_confidences[i][train_l_word_idx[i]] for i in range(len(train_l_word_idx))]), np.array([train_l_confidences[i][(train_l_word_idx[i] -1)%len(GRID_VOCAB_FULL)] for i in range(len(train_l_word_idx))])))
+    train_unl_fpr, train_unl_tpr, train_unl_thresholds, train_unl_roc_auc = compute_ROC_singleclass(np.append(np.ones(len(train_unl_word_idx)), np.zeros(len(train_unl_word_idx))), np.append(np.array([train_unl_confidences[i][train_unl_word_idx[i]] for i in range(len(train_unl_word_idx))]), np.array([train_unl_confidences[i][(train_unl_word_idx[i] -1)%len(GRID_VOCAB_FULL)] for i in range(len(train_unl_word_idx))])))
+    val_fpr, val_tpr, val_thresholds, val_roc_auc = compute_ROC_singleclass(np.append(np.ones(len(val_word_idx)), np.zeros(len(val_word_idx))), np.append(np.array([val_confidences[i][val_word_idx[i]] for i in range(len(val_word_idx))]), np.array([val_confidences[i][(val_word_idx[i] -1)%len(GRID_VOCAB_FULL)] for i in range(len(val_word_idx))])))
+    si_fpr, si_tpr, si_thresholds, si_roc_auc = compute_ROC_singleclass(np.append(np.ones(len(si_word_idx)), np.zeros(len(si_word_idx))), np.append(np.array([si_confidences[i][si_word_idx[i]] for i in range(len(si_word_idx))]), np.array([si_confidences[i][(si_word_idx[i] -1)%len(GRID_VOCAB_FULL)] for i in range(len(si_word_idx))])))
+    if showPlot or savePlot:
+        plt.plot(train_l_fpr, train_l_tpr, color='C0', label='train - labelled; AUC={0:0.4f}'.format(train_l_roc_auc))
+        plt.plot(train_unl_fpr, train_unl_tpr, color='C1', label='train - unlabelled; AUC={0:0.4f}'.format(train_unl_roc_auc))
+        plt.plot(val_fpr, val_tpr, color='C2', label='val; AUC={0:0.4f}'.format(val_roc_auc))
+        plt.plot(si_fpr, si_tpr, color='C3', label='si; AUC={0:0.4f}'.format(si_roc_auc))
+        if train_l_fpr_op is not None and train_l_tpr_op is not None:
+            plt.plot(train_l_fpr_op, train_l_tpr_op, color='C0', marker='x')
+        if train_unl_fpr_op is not None and train_unl_tpr_op is not None:
+            plt.plot(train_unl_fpr_op, train_unl_tpr_op, color='C1', marker='x')
+        if val_fpr_op is not None and val_tpr_op is not None:
+            plt.plot(val_fpr_op, val_tpr_op, color='C2', marker='x')
+        if si_fpr_op is not None and si_tpr_op is not None:
+            plt.plot(si_fpr_op, si_tpr_op, color='C3', marker='x')
+        plt.legend(loc='lower right')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title(plot_title)
+    if savePlot:
+        plt.savefig('a.png')
+    if showPlot:
+        plt.show()
+    if showPlot or savePlot:
+        plt.close()
+    return train_l_fpr, train_l_tpr, train_l_roc_auc, train_unl_fpr, train_unl_tpr, train_unl_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
+
+
 def compute_pc_ROC_grid_multiclass(train_l_word_idx, train_l_confidences,
                 train_unl_word_idx, train_unl_confidences,
                 val_word_idx, val_confidences,
@@ -200,7 +240,8 @@ def compute_pc_ROC_grid_multiclass(train_l_word_idx, train_l_confidences,
         plt.savefig('a.png')
     if showPlot:
         plt.show()
-    plt.close()
+    if showPlot or savePlot:
+        plt.close()
     return train_l_fpr, train_l_tpr, train_l_roc_auc, train_unl_fpr, train_unl_tpr, train_unl_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
 
 
@@ -227,7 +268,8 @@ def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
         plt.savefig('a.png')
     if showPlot:
         plt.show()
-    plt.close()
+    if showPlot or savePlot:
+        plt.close()
     return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
 
 
@@ -319,6 +361,7 @@ def make_LSTMlipreader_predictions(lipreader_preds,
                                    word_numbers,
                                    word_idx,
                                    lipreader,
+                                   lipreaderEncoder
                                    grid_vocab=GRID_VOCAB_FULL,
                                    startNum=0):
     # dirs = train_val_dirs
@@ -359,6 +402,7 @@ def make_LSTMlipreader_predictions(lipreader_preds,
             # 0 0 0 0 0 0 0 7 6 5 4 3 2 1
             wordImages[0][-f - 1] = robust_imread(wordMouthFrame, 0)
         # SAVE ENCODER FEATURE
+        lipreader_preds[i] = lipreaderEncoder.predict(wordImages)
         # break
         # MAKE PREDICTION
         lipreader_preds[i] = lipreader.predict(wordImages)

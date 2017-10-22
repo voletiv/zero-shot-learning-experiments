@@ -396,6 +396,21 @@ np.save('si_grid_attributes_matrix', si_grid_attributes)
 
 # np.savez('lipreader_preds', train_lipreader_preds=train_lipreader_preds, val_lipreader_preds=val_lipreader_preds, si_lipreader_preds=si_lipreader_preds)
 
+np.savez('lipreader_preds_predWordIdx_correctOrNot',
+    train_val_lipreader_preds_correct_or_wrong=train_val_lipreader_preds_correct_or_wrong,
+    train_val_lipreader_pred_word_idx=train_val_lipreader_pred_word_idx,
+    si1314_lipreader_preds_correct_or_wrong=si1314_lipreader_preds_correct_or_wrong,
+    si1314_lipreader_preds_word_idx=si1314_lipreader_preds_word_idx,
+    train_lipreader_preds=train_lipreader_preds,
+    train_lipreader_preds_correct_or_wrong=train_lipreader_preds_correct_or_wrong,
+    train_lipreader_preds_word_idx=train_lipreader_preds_word_idx,
+    val_lipreader_preds=val_lipreader_preds,
+    val_lipreader_preds_correct_or_wrong=val_lipreader_preds_correct_or_wrong,
+    val_lipreader_preds_word_idx=val_lipreader_preds_word_idx,
+    si131410_lipreader_preds=si131410_lipreader_preds,
+    si131410_lipreader_preds_correct_or_wrong=si131410_lipreader_preds_correct_or_wrong,
+    si131410_lipreader_preds_word_idx=si131410_lipreader_preds_word_idx)
+
 
 # #############################################################
 # # CRITIC PREDS
@@ -430,3 +445,36 @@ si_10pc_lipreader_64_features = np.vstack((si1314_lipreader_10pc_64_features, tr
 np.savez('lipreader_10pc_64_features', train_val_10pc_lipreader_64_features=train_val_10pc_lipreader_64_features, si1314_lipreader_10pc_64_features=si1314_lipreader_10pc_64_features,
     train_10pc_lipreader_64_features=train_10pc_lipreader_64_features, val_10pc_lipreader_64_features=val_10pc_lipreader_64_features, si_10pc_lipreader_64_features=si_10pc_lipreader_64_features)
 
+
+lipreader_10pc_preds_predWordIdx_correctOrNot = np.load('lipreader_10pc_preds_predWordIdx_correctOrNot.npz')
+
+train_val_lipreader_10pc_preds = lipreader_10pc_preds_predWordIdx_correctOrNot['train_val_lipreader_10pc_preds']
+train_val_lipreader_10pc_preds_word_idx = lipreader_10pc_preds_predWordIdx_correctOrNot['train_val_lipreader_10pc_preds_word_idx']
+train_val_lipreader_10pc_preds_correct_or_wrong = lipreader_10pc_preds_predWordIdx_correctOrNot['train_val_lipreader_10pc_preds_correct_or_wrong']
+si1314_lipreader_10pc_preds = lipreader_10pc_preds_predWordIdx_correctOrNot['si1314_lipreader_10pc_preds']
+si1314_lipreader_10pc_preds_word_idx = lipreader_10pc_preds_predWordIdx_correctOrNot['si1314_lipreader_10pc_preds_word_idx']
+si1314_lipreader_10pc_preds_correct_or_wrong = lipreader_10pc_preds_predWordIdx_correctOrNot['si1314_lipreader_10pc_preds_correct_or_wrong']
+
+train_lipreader_10pc_preds = train_val_lipreader_10pc_preds[train_10pc_idx]
+train_lipreader_10pc_preds_correct_or_wrong = train_val_lipreader_10pc_preds_word_idx[train_10pc_idx]
+train_lipreader_10pc_preds_word_idx = train_val_lipreader_10pc_preds_correct_or_wrong[train_10pc_idx]
+
+val_lipreader_10pc_preds = train_val_lipreader_10pc_preds[val_10pc_idx]
+val_lipreader_10pc_preds_word_idx = train_val_lipreader_10pc_preds_word_idx[val_10pc_idx]
+val_lipreader_10pc_preds_correct_or_wrong = train_val_lipreader_10pc_preds_correct_or_wrong[val_10pc_idx]
+
+si1314_lipreader_10pc_preds = si1314_lipreader_10pc_preds[si1314_10pc_idx]
+si1314_lipreader_10pc_preds_word_idx = si1314_lipreader_10pc_preds_word_idx[si1314_10pc_idx]
+si1314_lipreader_10pc_preds_correct_or_wrong = si1314_lipreader_10pc_preds_correct_or_wrong[si1314_10pc_idx]
+
+
+np.savez('lipreader_10pc_preds_predWordIdx_correctOrNot',
+    train_lipreader_10pc_preds=train_lipreader_10pc_preds,
+    train_lipreader_10pc_preds_correct_or_wrong=train_lipreader_10pc_preds_correct_or_wrong,
+    train_lipreader_10pc_preds_word_idx=train_lipreader_10pc_preds_word_idx,
+    val_lipreader_10pc_preds=val_lipreader_10pc_preds,
+    val_lipreader_10pc_preds_correct_or_wrong=val_lipreader_10pc_preds_correct_or_wrong,
+    val_lipreader_10pc_preds_word_idx=val_lipreader_10pc_preds_word_idx,
+    si1314_lipreader_10pc_preds=si1314_lipreader_10pc_preds,
+    si1314_lipreader_10pc_preds_word_idx=si1314_lipreader_10pc_preds_word_idx,
+    si1314_lipreader_10pc_preds_correct_or_wrong=si1314_lipreader_10pc_preds_correct_or_wrong)
