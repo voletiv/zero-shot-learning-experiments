@@ -6,6 +6,7 @@ import glob
 import math
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import tqdm
 
 from scipy import interp
@@ -47,6 +48,45 @@ def plot_grid_ROC(train_fpr, train_tpr, train_roc_auc,
     plt.title(plot_title)
     plt.show()
 
+def plot_pc_grid_ROC(train_l_fpr, train_l_tpr, train_l_roc_auc,
+        train_unl_fpr, train_unl_tpr, train_unl_roc_auc,
+        val_fpr, val_tpr, val_roc_auc,
+        si_fpr, si_tpr, si_roc_auc,
+        train_l_OP_fpr=None, train_l_OP_tpr=None,
+        train_unl_OP_fpr=None, train_unl_OP_tpr=None,
+        val_OP_fpr=None, val_OP_tpr=None,
+        si_OP_fpr=None, si_OP_tpr=None,
+        train_l_optimalOP_fpr=None, train_l_optimalOP_tpr=None,
+        train_unl_optimalOP_fpr=None, train_unl_optimalOP_tpr=None,
+        val_optimalOP_fpr=None, val_optimalOP_tpr=None,
+        si_optimalOP_fpr=None, si_optimalOP_tpr=None,
+        plot_title='ROC curve of RBF SVM optimized'):
+    plt.plot(train_l_fpr, train_l_tpr, color='C0', label='train; AUC={0:0.4f}'.format(train_l_roc_auc))
+    plt.plot(train_unl_fpr, train_unl_tpr, color='C1', label='train; AUC={0:0.4f}'.format(train_unl_roc_auc))
+    plt.plot(val_fpr, val_tpr, color='C2', label='val; AUC={0:0.4f}'.format(val_roc_auc))
+    plt.plot(si_fpr, si_tpr, color='C3', label='si; AUC={0:0.4f}'.format(si_roc_auc))
+    if train_l_OP_fpr is not None and train_l_OP_tpr is not None:
+        plt.plot(train_l_OP_fpr, train_l_OP_tpr, color='C0', marker='x')
+    if train_unl_OP_fpr is not None and train_unl_OP_tpr is not None:
+        plt.plot(train_unl_OP_fpr, train_unl_OP_tpr, color='C1', marker='x')
+    if val_OP_fpr is not None and val_OP_tpr is not None:
+        plt.plot(val_OP_fpr, val_OP_tpr, color='C2', marker='x')
+    if si_OP_fpr is not None and si_OP_tpr is not None:
+        plt.plot(si_OP_fpr, si_OP_tpr, color='C3', marker='x')
+    if train_l_optimalOP_fpr is not None and train_l_optimalOP_tpr is not None:
+        plt.plot(train_l_optimalOP_fpr, train_l_optimalOP_tpr, color='C0', marker='o')
+    if train_unl_optimalOP_fpr is not None and train_unl_optimalOP_tpr is not None:
+        plt.plot(train_unl_optimalOP_fpr, train_unl_optimalOP_tpr, color='C1', marker='o')
+    if val_optimalOP_fpr is not None and val_optimalOP_tpr is not None:
+        plt.plot(val_optimalOP_fpr, val_optimalOP_tpr, color='C2', marker='o')
+    if si_optimalOP_fpr is not None and si_optimalOP_tpr is not None:
+        plt.plot(si_optimalOP_fpr, si_optimalOP_tpr, color='C3', marker='o')
+    plt.legend(loc='lower right')
+    plt.xlabel('False positive rate')
+    plt.ylabel('True positive rate')
+    plt.title(plot_title)
+    plt.show()
+
 
 def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
                                  val_correct_or_not, val_probabilities,
@@ -80,6 +120,46 @@ def compute_ROC_grid_singleclass(train_correct_or_not, train_probabilities,
     if showPlot or savePlot:
         plt.close()
     return train_fpr, train_tpr, train_thresholds, train_roc_auc, val_fpr, val_tpr, val_thresholds, val_roc_auc, si_fpr, si_tpr, si_thresholds, si_roc_auc
+
+
+def compute_pc_ROC_grid_singleclass(train_l_correct_or_not, train_l_probabilities,
+                                    train_unl_correct_or_not, train_unl_probabilities,
+                                    val_correct_or_not, val_probabilities,
+                                    si_correct_or_not, si_probabilities,
+                                    train_l_fpr_op=None, train_l_tpr_op=None,
+                                    train_unl_fpr_op=None, train_unl_tpr_op=None,
+                                    val_fpr_op=None, val_tpr_op=None,
+                                    si_fpr_op=None, si_tpr_op=None,
+                                    savePlot=False, showPlot=False,
+                                    plot_title='ROC curve of linear SVM unoptimized'):
+    train_l_fpr, train_l_tpr, train_l_thresholds, train_l_roc_auc = compute_ROC_singleclass(train_l_correct_or_not, train_l_probabilities)
+    train_unl_fpr, train_unl_tpr, train_unl_thresholds, train_unl_roc_auc = compute_ROC_singleclass(train_unl_correct_or_not, train_unl_probabilities)
+    val_fpr, val_tpr, val_thresholds, val_roc_auc = compute_ROC_singleclass(val_correct_or_not, val_probabilities)
+    si_fpr, si_tpr, si_thresholds, si_roc_auc = compute_ROC_singleclass(si_correct_or_not, si_probabilities)
+    if showPlot or savePlot:
+        plt.plot(train_l_fpr, train_l_tpr, color='C0', label='train - labelled; AUC={0:0.4f}'.format(train_l_roc_auc))
+        plt.plot(train_unl_fpr, train_unl_tpr, color='C1', label='train - unlabelled; AUC={0:0.4f}'.format(train_unl_roc_auc))
+        plt.plot(val_fpr, val_tpr, color='C2', label='val; AUC={0:0.4f}'.format(val_roc_auc))
+        plt.plot(si_fpr, si_tpr, color='C3', label='si; AUC={0:0.4f}'.format(si_roc_auc))
+        if train_l_fpr_op is not None and train_l_tpr_op is not None:
+            plt.plot(train_l_fpr_op, train_l_tpr_op, color='C0', marker='x')
+        if train_unl_fpr_op is not None and train_unl_tpr_op is not None:
+            plt.plot(train_unl_fpr_op, train_unl_tpr_op, color='C1', marker='x')
+        if val_fpr_op is not None and val_tpr_op is not None:
+            plt.plot(val_fpr_op, val_tpr_op, color='C2', marker='x')
+        if si_fpr_op is not None and si_tpr_op is not None:
+            plt.plot(si_fpr_op, si_tpr_op, color='C3', marker='x')
+        plt.legend(loc='lower right')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title(plot_title)
+    if savePlot:
+        plt.savefig('a.png')
+    if showPlot:
+        plt.show()
+    if showPlot or savePlot:
+        plt.close()
+    return train_l_fpr, train_l_tpr, train_l_thresholds, train_l_roc_auc, train_unl_fpr, train_unl_tpr, train_unl_thresholds, train_unl_roc_auc, val_fpr, val_tpr, val_thresholds, val_roc_auc, si_fpr, si_tpr, si_thresholds, si_roc_auc
 
 
 def compute_ROC_singleclass(correct_or_not, probability):
@@ -163,6 +243,27 @@ def calc_grid_operating_points(clf, train_y, val_y, si_y, train_matrix, val_matr
     si_tpr_op = si_tp/(si_tp + si_fn)
     # Return
     return train_fpr_op, train_tpr_op, val_fpr_op, val_tpr_op, si_fpr_op, si_tpr_op
+
+
+def calc_pc_grid_operating_points(clf, train_labelled_y, train_unlabelled_y, val_y, si_y, train_l_matrix, train_unl_matrix, val_matrix, si_matrix):
+    # Train_labelled
+    train_l_tn, train_l_fp, train_l_fn, train_l_tp = confusion_matrix(train_labelled_y, clf.predict(train_l_matrix)).ravel()
+    train_l_fpr_op = train_l_fp/(train_l_fp + train_l_tn)
+    train_l_tpr_op = train_l_tp/(train_l_tp + train_l_fn)
+    # Train_unlabelled
+    train_unl_tn, train_unl_fp, train_unl_fn, train_unl_tp = confusion_matrix(train_unlabelled_y, clf.predict(train_unl_matrix)).ravel()
+    train_unl_fpr_op = train_unl_fp/(train_unl_fp + train_unl_tn)
+    train_unl_tpr_op = train_unl_tp/(train_unl_tp + train_unl_fn)
+    # Val
+    val_tn, val_fp, val_fn, val_tp = confusion_matrix(val_y, clf.predict(val_matrix)).ravel()
+    val_fpr_op = val_fp/(val_fp + val_tn)
+    val_tpr_op = val_tp/(val_tp + val_fn)
+    # Si
+    si_tn, si_fp, si_fn, si_tp = confusion_matrix(si_y, clf.predict(si_matrix)).ravel()
+    si_fpr_op = si_fp/(si_fp + si_tn)
+    si_tpr_op = si_tp/(si_tp + si_fn)
+    # Return
+    return train_l_fpr_op, train_l_tpr_op, train_unl_fpr_op, train_unl_tpr_op, val_fpr_op, val_tpr_op, si_fpr_op, si_tpr_op
 
 
 def find_ROC_optimalOP(fpr, tpr, thresholds, score, y):
@@ -335,4 +436,55 @@ def gen_txt_files_line_by_line(mode='train_val', word='Estimating head pose'):
                 for line in f:
                     if word in line:
                         yield line
+
+#############################################################
+# LOAD IMAGE DIRS AND WORD NUMBERS
+#############################################################
+
+
+def load_image_dirs_and_word_numbers(trainValSpeakersList = [1, 2, 3, 4, 5, 6, 7, 9],
+                                        valSplit = 0.1,
+                                        siList = [10, 11]):
+    # TRAIN AND VAL
+    trainDirs = []
+    trainWordNumbers = []
+    valDirs = []
+    valWordNumbers = []
+    np.random.seed(29)
+    # For each speaker
+    for speaker in sorted(tqdm.tqdm(trainValSpeakersList)):
+        speakerDir = os.path.join(GRID_DATA_DIR, 's' + '{0:02d}'.format(speaker))
+        # List of all videos for each speaker
+        vidDirs = sorted(glob.glob(os.path.join(speakerDir, '*/')))
+        totalNumOfImages = len(vidDirs)
+        # To shuffle directories before splitting into train and validate
+        fullListIdx = list(range(totalNumOfImages))
+        np.random.shuffle(fullListIdx)
+        # Append training directories
+        for i in fullListIdx[:int((1 - valSplit) * totalNumOfImages)]:
+            for j in range(WORDS_PER_VIDEO):
+                trainDirs.append(vidDirs[i])
+                trainWordNumbers.append(j)
+        # Append val directories
+        for i in fullListIdx[int((1 - valSplit) * totalNumOfImages):]:
+            for j in range(WORDS_PER_VIDEO):
+                valDirs.append(vidDirs[i])
+                valWordNumbers.append(j)
+    # Numbers
+    print("No. of training words: " + str(len(trainDirs)))
+    print("No. of val words: " + str(len(valDirs)))
+    # SPEAKER INDEPENDENT
+    siDirs = []
+    siWordNumbers = []
+    for speaker in sorted(tqdm.tqdm(siList)):
+        speakerDir = os.path.join(GRID_DATA_DIR, 's' + '{0:02d}'.format(speaker))
+        vidDirs = sorted(glob.glob(os.path.join(speakerDir, '*/')))
+        for i in fullListIdx:
+                for j in range(WORDS_PER_VIDEO):
+                    siDirs.append(vidDirs[i])
+                    siWordNumbers.append(j)
+    # Numbers
+    print("No. of speaker-independent words: " + str(len(siDirs)))
+    # Return
+    return np.array(trainDirs), np.array(trainWordNumbers), np.array(valDirs), np.array(valWordNumbers), np.array(siDirs), np.array(siWordNumbers)
 

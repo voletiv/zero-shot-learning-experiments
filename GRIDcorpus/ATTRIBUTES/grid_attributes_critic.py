@@ -249,7 +249,7 @@ train_critic_score, val_critic_score, si_critic_score, \
 # logReg_unopt.fit(train_matrix, train_lipreader_preds_correct_or_wrong)
 
 # # Save
-# joblib.dump(logReg_unopt, 'logReg_unopt.pkl', compress=3) 
+# joblib.dump(logReg_unopt, 'logReg_unopt.pkl', compress=3)
 
 # # Acc
 # logReg_unopt.score(train_matrix, train_lipreader_preds_correct_or_wrong)
@@ -774,13 +774,3 @@ plt.title('Speaker-INdependent Test')
 
 plt.suptitle("COMPARISON OF ASSESSORS ON BEST LIPREADER_PREDS")
 plt.show()
-
-#############################################################
-# LIPREADER SELF-TRAIN 10%
-#############################################################
-
-
-
-
-
-

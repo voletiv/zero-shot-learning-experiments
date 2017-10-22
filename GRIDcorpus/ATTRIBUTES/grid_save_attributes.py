@@ -354,7 +354,7 @@ si_grid_attributes = np.hstack((si_grid_attributes, si_head_poses_ranges))
 
 np.save('train_grid_attributes_matrix', train_grid_attributes)
 np.save('val_grid_attributes_matrix', val_grid_attributes)
-np.save('si_grid_attributes_matrix', si_grid_attributes)
+np.save('si131410_grid_attributes_matrix', si_grid_attributes)
 
 #############################################################
 # LIPREADER FEATURES
@@ -368,6 +368,9 @@ np.save('si_grid_attributes_matrix', si_grid_attributes)
 # train_lipreader_64_features = train_val_lipreader_64_features[train_dirs_binary]
 # val_lipreader_64_features = train_val_lipreader_64_features[val_dirs_binary]
 # si_lipreader_64_features = np.vstack((si1314_lipreader_64_features, train_val_lipreader_64_features[si_dirs_binary]))
+
+# np.savez('lipreader_64_features', train_val_lipreader_64_features=train_val_lipreader_64_features, si1314_lipreader_64_features=si1314_lipreader_64_features,
+#     train_lipreader_64_features=train_lipreader_64_features, val_lipreader_64_features=val_lipreader_64_features, si_lipreader_64_features=si_lipreader_64_features)
 
 # train_grid_attributes = np.hstack((train_grid_attributes, train_lipreader_64_features))
 # val_grid_attributes = np.hstack((val_grid_attributes, val_lipreader_64_features))
@@ -398,17 +401,32 @@ np.save('si_grid_attributes_matrix', si_grid_attributes)
 # # CRITIC PREDS
 # #############################################################
 
-critic_preds = np.load('critic_preds.npz')
+# critic_preds = np.load('critic_preds.npz')
 
-train_val_critic_preds = critic_preds['train_val_critic_preds']
-si1314_critic_preds = critic_preds['si1314_critic_preds']
+# train_val_critic_preds = critic_preds['train_val_critic_preds']
+# si1314_critic_preds = critic_preds['si1314_critic_preds']
 
-train_critic_preds = train_val_critic_preds[train_dirs_binary]
-val_critic_preds = train_val_critic_preds[val_dirs_binary]
-si_critic_preds = np.append(si1314_critic_preds, train_val_critic_preds[si_dirs_binary])
+# train_critic_preds = train_val_critic_preds[train_dirs_binary]
+# val_critic_preds = train_val_critic_preds[val_dirs_binary]
+# si_critic_preds = np.append(si1314_critic_preds, train_val_critic_preds[si_dirs_binary])
 
-np.savez('critic_preds', train_val_critic_preds=train_val_critic_preds, si1314_critic_preds=si1314_critic_preds,
-    train_critic_preds=train_critic_preds, val_critic_preds=val_critic_preds, si_critic_preds=si_critic_preds)
+# np.savez('critic_preds', train_val_critic_preds=train_val_critic_preds, si1314_critic_preds=si1314_critic_preds,
+#     train_critic_preds=train_critic_preds, val_critic_preds=val_critic_preds, si_critic_preds=si_critic_preds)
 
 
+# #############################################################
+# # LIPREADER - 10% - PREDS
+# #############################################################
+
+lipreader_10pc_64_features = np.load('lipreader_10pc_64_features.npz')
+
+train_val_10pc_lipreader_64_features = lipreader_10pc_64_features['train_val_10pc_lipreader_64_features']
+si1314_lipreader_10pc_64_features = lipreader_10pc_64_features['si1314_lipreader_10pc_64_features']
+
+train_10pc_lipreader_64_features = train_val_10pc_lipreader_64_features[train_dirs_binary]
+val_10pc_lipreader_64_features = train_val_10pc_lipreader_64_features[val_dirs_binary]
+si_10pc_lipreader_64_features = np.vstack((si1314_lipreader_10pc_64_features, train_val_10pc_lipreader_64_features[si_dirs_binary]))
+
+np.savez('lipreader_10pc_64_features', train_val_10pc_lipreader_64_features=train_val_10pc_lipreader_64_features, si1314_lipreader_10pc_64_features=si1314_lipreader_10pc_64_features,
+    train_10pc_lipreader_64_features=train_10pc_lipreader_64_features, val_10pc_lipreader_64_features=val_10pc_lipreader_64_features, si_10pc_lipreader_64_features=si_10pc_lipreader_64_features)
 

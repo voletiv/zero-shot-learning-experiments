@@ -3,8 +3,6 @@
 from grid_attributes_functions import *
 from grid_functions import *
 
-attributes = {}
-
 ########################################
 # ATTRIBUTES
 ########################################
@@ -418,4 +416,34 @@ make_critic_predictions(si1314_critic_preds,
 
 np.savez('critic_preds', train_val_critic_preds=train_val_critic_preds, si1314_critic_preds=si1314_critic_preds)
 
+
+#############################################################
+# LIPREADER SELF-TRAIN 10%
+#############################################################
+
+LSTMLipreaderModel, LSTMLipreaderEncoder = load_LSTM_lipreader_and_encoder()
+LSTMLipreaderModel.load_weights(os.path.join(LIPREADER_DIR, 'SELF-TRAINING', 'LSTMLipReader-revSeq-Mask-LSTMh256-tanh-depth2-enc64-relu-adam-1e-03-tMouth-valMouth-NOmeanSub-GRIDcorpus-s0107-10-si-s1314-10PercentSelfTraining-LRthresh0.90-iter00-epoch079-tl1.1377-ta0.6460-vl1.5886-va0.5360-sil3.9002-sia0.2181.hdf5'))
+
+# Make 64-dim features
+train_val_10pc_lipreader_64_features = np.zeros((len(train_val_dirs), 64))
+make_LSTMlipreader_predictions(train_val_10pc_lipreader_64_features,
+                               train_val_10pc_lipreader_64_features,
+                               train_val_dirs,
+                               train_val_word_numbers,
+                               train_val_word_idx,
+                               LSTMLipreaderEncoder,
+                               GRID_VOCAB_FULL,
+                               0)
+
+si1314_lipreader_10pc_64_features = np.zeros((len(si1314_dirs), 64))
+make_LSTMlipreader_predictions(si1314_lipreader_10pc_64_features,
+                               si1314_lipreader_10pc_64_features,
+                               si1314_dirs,
+                               si1314_word_numbers,
+                               si1314_word_idx,
+                               LSTMLipreaderEncoder,
+                               GRID_VOCAB_FULL,
+                               0)
+
+np.savez('lipreader_10pc_64_features', train_val_10pc_lipreader_64_features=train_val_10pc_lipreader_64_features, si1314_lipreader_10pc_64_features=si1314_lipreader_10pc_64_features)
 
