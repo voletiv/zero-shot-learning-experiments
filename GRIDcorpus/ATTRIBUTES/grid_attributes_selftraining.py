@@ -95,12 +95,16 @@ si1314_10pc_idx = grid_basics['si1314_10pc_idx']
 
 train_10pc_dirs = train_val_dirs[train_10pc_idx]
 train_10pc_word_numbers = train_val_word_numbers[train_10pc_idx]
+train_10pc_word_idx = train_val_word_idx[train_10pc_idx]
 
 val_10pc_dirs = train_val_dirs[val_10pc_idx]
 val_10pc_word_numbers = train_val_word_numbers[val_10pc_idx]
+val_10pc_word_idx = train_val_word_idx[val_10pc_idx]
 
-si1314_10pc_dirs = train_val_dirs[si1314_10pc_idx]
-val_10pc_word_numbers = train_val_word_numbers[si1314_10pc_idx]
+si1314_10pc_dirs = si1314_dirs[si1314_10pc_idx]
+si1314_10pc_word_numbers = si1314_word_numbers[si1314_10pc_idx]
+si1314_10pc_word_idx = si1314_word_idx[si1314_10pc_idx]
+
 
 #################################################################
 # 10%
@@ -127,35 +131,30 @@ train_10pc_unlabelled_idx = train_10pc_full_list[int(labelledPercent/100*len(tra
 train_10pc_unlabelled_dirs = np.array(train_10pc_dirs)[train_10pc_unlabelled_idx]
 train_10pc_unlabelled_word_numbers = np.array(train_10pc_word_numbers)[train_10pc_unlabelled_idx]
 
+
 #############################################################
-# LOAD CORRECT_OR_NOT, PREDS_WORDIDX
+# LIPREADER ROC
 #############################################################
 
-lipreader_preds_wordidx_and_correctorwrong = np.load('lipreader_preds_wordidx_and_correctorwrong.npy').item()
+# Compute ROC
+lipreader_train_10pc_l_fpr, lipreader_train_10pc_l_tpr, lipreader_train_10pc_l_roc_auc, \
+        lipreader_train_10pc_unl_fpr, lipreader_train_10pc_unl_tpr, lipreader_train_10pc_unl_roc_auc, \
+        lipreader_val_10pc_fpr, lipreader_val_10pc_tpr, lipreader_val_10pc_roc_auc, \
+        lipreader_si_10pc_fpr, lipreader_si_10pc_tpr, lipreader_si_10pc_roc_auc = \
+    compute_pc_ROC_grid_multiclass(train_10pc_word_idx, train_l_lipreader_preds,
+        val_word_idx, val_lipreader_preds,
+        si_word_idx, si_lipreader_preds,
+        savePlot=True, showPlot=True,
+        plot_title='Baseline ROC curve of lipreader 10% Self-training')
 
-train_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_correct_or_wrong']
-val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong']
-si131410_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']
+np.savez('ROC_baseline_lipreader',
+    lipreader_train_fpr=lipreader_train_fpr, lipreader_train_tpr=lipreader_train_tpr, lipreader_train_roc_auc=lipreader_train_roc_auc,
+    lipreader_val_fpr=lipreader_val_fpr, lipreader_val_tpr=lipreader_val_tpr, lipreader_val_roc_auc=lipreader_val_roc_auc,
+    lipreader_si_fpr=lipreader_si_fpr, lipreader_si_tpr=lipreader_si_tpr, lipreader_si_roc_auc=lipreader_si_roc_auc)
+    # train_lipreader_OP_fpr=train_lipreader_OP_fpr, train_lipreader_OP_tpr=train_lipreader_OP_tpr,
+    # val_lipreader_OP_fpr=val_lipreader_OP_fpr, val_lipreader_OP_tpr=val_lipreader_OP_tpr,
+    # si_lipreader_OP_fpr=si_lipreader_OP_fpr, si_lipreader_OP_tpr=si_lipreader_OP_tpr)
 
-train_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_word_idx']
-val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_word_idx']
-si131410_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx']
-
-# 10pc preds_corect_or_wrong
-train_val_lipreader_preds_correct_or_wrong = np.append(np.append(train_lipreader_preds_correct_or_wrong, val_lipreader_preds_correct_or_wrong), si131410_lipreader_preds_correct_or_wrong[12000:])
-si1314_lipreader_preds_correct_or_wrong = si131410_lipreader_preds_correct_or_wrong[:12000]
-
-train_10pc_lipreader_preds_correct_or_wrong = train_val_lipreader_preds_correct_or_wrong[train_10pc_idx]
-val_10pc_lipreader_preds_correct_or_wrong = train_val_lipreader_preds_correct_or_wrong[val_10pc_idx]
-si1314_10pc_lipreader_preds_correct_or_wrong = si1314_lipreader_preds_correct_or_wrong[si1314_10pc_idx]
-
-# 10pc preds_word_idx
-train_val_lipreader_preds_word_idx = np.append(np.append(train_lipreader_preds_word_idx, val_lipreader_preds_word_idx), si131410_lipreader_preds_word_idx[12000:])
-si1314_lipreader_preds_word_idx = si131410_lipreader_preds_word_idx[:12000]
-
-train_10pc_lipreader_preds_word_idx = train_val_lipreader_preds_word_idx[train_10pc_idx]
-val_10pc_lipreader_preds_word_idx = train_val_lipreader_preds_word_idx[val_10pc_idx]
-si1314_10pc_lipreader_preds_word_idx = si1314_lipreader_preds_word_idx[si1314_10pc_idx]
 
 #############################################################
 # LOAD LIPREADER SELF-TRAIN 10% FEATURES
@@ -182,6 +181,7 @@ lipreader_10pc_64_features = np.load('lipreader_10pc_64_features.npz')
 train_10pc_lipreader_64_features = lipreader_10pc_64_features['train_10pc_lipreader_64_features']
 val_10pc_lipreader_64_features = lipreader_10pc_64_features['val_10pc_lipreader_64_features']
 si1314_10pc_lipreader_64_features = lipreader_10pc_64_features['si1314_10pc_lipreader_64_features']
+
 
 #############################################################
 # LOAD ATTRIBUTES
@@ -224,12 +224,6 @@ si1314_10pc_matrix = si1314_10pc_grid_attributes_norm[:, 3:]
 # Pick only the labelled ones
 train_10pc_labelled_matrix = train_10pc_matrix[train_10pc_labelled_idx]
 train_10pc_unlabelled_matrix = train_10pc_matrix[train_10pc_unlabelled_idx]
-
-########################################
-# LIPREADER ROC
-########################################
-
-
 
 
 ########################################

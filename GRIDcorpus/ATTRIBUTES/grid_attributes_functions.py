@@ -173,6 +173,37 @@ def compute_ROC_singleclass(correct_or_not, probability):
     return fpr, tpr, thresholds, roc_auc
 
 
+def compute_pc_ROC_grid_multiclass(train_l_word_idx, train_l_confidences,
+                train_unl_word_idx, train_unl_confidences,
+                val_word_idx, val_confidences,
+                si_word_idx, si_confidences,
+                savePlot=False, showPlot=False,
+                plot_title='ROC curve of linear SVM unoptimized'):
+    train_l_fpr, train_l_tpr, train_l_roc_auc = compute_ROC_multiclass(label_binarize(train_l_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), train_l_confidences, len(GRID_VOCAB_FULL))
+    train_unl_fpr, train_unl_tpr, train_unl_roc_auc = compute_ROC_multiclass(label_binarize(train_unl_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), train_unl_confidences, len(GRID_VOCAB_FULL))
+    val_fpr, val_tpr, val_roc_auc = compute_ROC_multiclass(label_binarize(val_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), val_confidences, len(GRID_VOCAB_FULL))
+    si_fpr, si_tpr, si_roc_auc = compute_ROC_multiclass(label_binarize(si_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), si_confidences, len(GRID_VOCAB_FULL))
+    if showPlot or savePlot:
+        plt.plot(train_l_fpr['micro'], train_l_tpr['micro'], color='C0', linestyle='-', label='train_labelled_micro; AUC={0:0.4f}'.format(train_l_roc_auc['micro']))
+        plt.plot(train_l_fpr['macro'], train_l_tpr['macro'], color='C0', linestyle='--', label='train_labelled_macro; AUC={0:0.4f}'.format(train_l_roc_auc['macro']))
+        plt.plot(train_unl_fpr['micro'], train_unl_tpr['micro'], color='C1', linestyle='-', label='train_unlabelled_micro; AUC={0:0.4f}'.format(train_unl_roc_auc['micro']))
+        plt.plot(train_unl_fpr['macro'], train_unl_tpr['macro'], color='C1', linestyle='--', label='train_unlabelled_macro; AUC={0:0.4f}'.format(train_unl_roc_auc['macro']))
+        plt.plot(val_fpr['micro'], val_tpr['micro'], color='C2', linestyle='-', label='val_micro; AUC={0:0.4f}'.format(val_roc_auc['micro']))
+        plt.plot(val_fpr['macro'], val_tpr['macro'], color='C2', linestyle='--', label='val_macro; AUC={0:0.4f}'.format(val_roc_auc['macro']))
+        plt.plot(si_fpr['micro'], si_tpr['micro'], color='C3', linestyle='-', label='si_micro; AUC={0:0.4f}'.format(si_roc_auc['micro']))
+        plt.plot(si_fpr['macro'], si_tpr['macro'], color='C3', linestyle='--', label='si_macro; AUC={0:0.4f}'.format(si_roc_auc['macro']))
+        plt.legend(loc='lower right')
+        plt.xlabel('False positive rate')
+        plt.ylabel('True positive rate')
+        plt.title(plot_title)
+    if savePlot:
+        plt.savefig('a.png')
+    if showPlot:
+        plt.show()
+    plt.close()
+    return train_l_fpr, train_l_tpr, train_l_roc_auc, train_unl_fpr, train_unl_tpr, train_unl_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
+
+
 def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
                 val_word_idx, val_confidences,
                 si_word_idx, si_confidences,
@@ -280,7 +311,8 @@ def find_fpr_tpr_acc_from_thresh(y, score, optimalOP_threshold):
     return optimalOP_fpr, optimalOP_tpr, optimalOP_acc
 
 
-def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
+def make_LSTMlipreader_predictions(lipreader_preds,
+                                   lipreader_pred_word_idx,
                                    lipreader_preds_correct_or_wrong,
                                    # word_durations,
                                    dirs,
@@ -325,14 +357,13 @@ def make_LSTMlipreader_predictions(lipreader_pred_word_idx,
         for f, wordMouthFrame in enumerate(wordMouthFiles[:FRAMES_PER_WORD]):
             # in reverse order of frames. eg. If there are 7 frames:
             # 0 0 0 0 0 0 0 7 6 5 4 3 2 1
-            wordImages[0][-f - 1] = np.reshape(cv2.imread(wordMouthFrame,
-                                                          0) / 255., (NUM_OF_MOUTH_PIXELS,))
+            wordImages[0][-f - 1] = robust_imread(wordMouthFrame, 0)
         # SAVE ENCODER FEATURE
-        lipreader_pred_word_idx[i] = lipreader.predict(wordImages)
         # break
-        # # MAKE PREDICTION
-        # lipreader_pred_word_idx[i] = np.argmax(lipreader.predict(wordImages))
-        # lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex
+        # MAKE PREDICTION
+        lipreader_preds[i] = lipreader.predict(wordImages)
+        lipreader_pred_word_idx[i] = np.argmax(lipreader_preds[i])
+        lipreader_preds_correct_or_wrong[i] = lipreader_pred_word_idx[i] == wordIndex
 
 
 def make_critic_predictions(critic_preds,
@@ -381,10 +412,17 @@ def make_critic_predictions(critic_preds,
         for f, wordMouthFrame in enumerate(wordMouthFiles[:FRAMES_PER_WORD]):
             # in reverse order of frames. eg. If there are 7 frames:
             # 0 0 0 0 0 0 0 7 6 5 4 3 2 1
-            wordImages[0][-f - 1] = np.reshape(cv2.imread(wordMouthFrame,
-                                                          0) / 255., (NUM_OF_MOUTH_PIXELS,))
+            wordImages[0][-f - 1] = robust_imread(wordMouthFrame, 0)
         # SAVE ENCODER FEATURE
         critic_preds[i] = critic.predict([wordImages, np.reshape(full_preds_word_idx[i], (1, len(grid_vocab)))])
+
+
+def robust_imread(wordMouthFrame, cv_option=0):
+    try:
+        image = np.reshape(cv2.imread(wordMouthFrame, cv_option) / 255., (NUM_OF_MOUTH_PIXELS,))
+        return image
+    except TypeError:
+        return robust_imread(wordMouthFrame, cv_option)
 
 
 def load_detector_and_predictor(verbose=False):

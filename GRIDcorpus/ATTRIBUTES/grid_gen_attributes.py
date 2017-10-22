@@ -447,3 +447,15 @@ make_LSTMlipreader_predictions(si1314_lipreader_10pc_64_features,
 
 np.savez('lipreader_10pc_64_features', train_val_10pc_lipreader_64_features=train_val_10pc_lipreader_64_features, si1314_lipreader_10pc_64_features=si1314_lipreader_10pc_64_features)
 
+train_val_lipreader_preds = np.zeros((len(train_val_dirs), len(GRID_VOCAB_FULL)))
+train_val_lipreader_pred_word_idx = np.zeros(len(train_val_dirs), dtype=int)
+train_val_lipreader_preds_correct_or_wrong = np.zeros(len(train_val_dirs), dtype=bool)
+make_LSTMlipreader_predictions(train_val_lipreader_preds,
+                               train_val_lipreader_pred_word_idx,
+                               train_val_lipreader_preds_correct_or_wrong,
+                               train_val_dirs,
+                               train_val_word_numbers,
+                               train_val_word_idx,
+                               LSTMLipreaderModel,
+                               GRID_VOCAB_FULL,
+                               0)
