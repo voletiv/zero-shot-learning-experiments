@@ -272,7 +272,6 @@ def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
         plt.close()
     return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
 
-
 def compute_ROC_multiclass(y_test, y_score, n_classes):
     # y_test == nxv one-hot
     # y_score == nxv full softmax scores
@@ -351,6 +350,46 @@ def find_fpr_tpr_acc_from_thresh(y, score, optimalOP_threshold):
     optimalOP_tpr = tp/(tp + fn)
     optimalOP_acc = (tp + tn)/len(y)
     return optimalOP_fpr, optimalOP_tpr, optimalOP_acc
+
+
+def get_grid_mouth_images(grid_mouth_images,
+                          dirs,
+                          word_numbers,
+                          num_of_frames=5,
+                          grid_vocab=GRID_VOCAB_FULL,
+                          startNum=0):
+    # dirs = train_val_dirs
+    # word_numbers = train_val_word_numbers
+    # word_idx = train_val_word_idx
+    # For each data point
+    for i, (vidDir, wordNum) in tqdm.tqdm(enumerate(zip(dirs, word_numbers)), total=len(dirs)):
+        if i < startNum:
+            continue
+        # GET SEQUENCE OF FRAMES
+        # align file
+        alignFile = vidDir[:-1] + '.align'
+        # Word-Time data
+        wordTimeData = open(alignFile).readlines()
+        # Get the max time of the video
+        maxClipDuration = float(wordTimeData[-1].split(' ')[1])
+        # Remove Silent and Short Pauses
+        for line in wordTimeData:
+            if 'sil' in line or 'sp' in line:
+                wordTimeData.remove(line)
+        # Find the start, end and middle frames for this word
+        wordStartFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
+                                    0]) / maxClipDuration * FRAMES_PER_VIDEO)
+        wordEndFrame = math.floor(int(wordTimeData[wordNum].split(' ')[
+                                 1]) / maxClipDuration * FRAMES_PER_VIDEO)
+        wordMiddleFrame = int((wordStartFrame + wordEndFrame + 1) / 2)
+        # All mouth file names of video
+        mouthFiles = sorted(glob.glob(os.path.join(vidDir, '*Mouth*.jpg')))
+        # Note the file names of the word
+        wordMouthFiles = mouthFiles[wordMiddleFrame - num_of_frames//2:wordMiddleFrame + num_of_frames//2 + 1]
+        # For each frame of this word
+        for f, wordMouthFrame in enumerate(wordMouthFiles):
+            # Save mouth image
+            grid_mouth_images[i*num_of_frames + f] = robust_imread(wordMouthFrame, 0)
 
 
 def make_LSTMlipreader_predictions(lipreader_preds,

@@ -198,9 +198,6 @@ lipreader_train_10pc_l_fpr, lipreader_train_10pc_l_tpr, lipreader_train_10pc_l_r
         savePlot=True, showPlot=True,
         plot_title='Baseline ROC curve of lipreader 10% Self-training')
 
-
-
-
 np.savez('ROC_baseline_lipreader',
     lipreader_train_fpr=lipreader_train_fpr, lipreader_train_tpr=lipreader_train_tpr, lipreader_train_roc_auc=lipreader_train_roc_auc,
     lipreader_val_fpr=lipreader_val_fpr, lipreader_val_tpr=lipreader_val_tpr, lipreader_val_roc_auc=lipreader_val_roc_auc,
@@ -257,6 +254,11 @@ train_10pc_grid_attributes[:, -64:] = train_10pc_lipreader_64_features
 val_10pc_grid_attributes[:, -64:] = val_10pc_lipreader_64_features
 si1314_10pc_grid_attributes[:, -64:] = si1314_10pc_lipreader_64_features
 
+
+#############################################################
+# ATTRIBUTES NORMALIZATION
+#############################################################
+
 # Normalization
 train_10pc_grid_attributes_peak_to_peak = train_10pc_grid_attributes.ptp(0)
 train_10pc_grid_attributes_peak_to_peak[np.argwhere(train_10pc_grid_attributes_peak_to_peak == 0)] = 1
@@ -290,6 +292,11 @@ logReg_10pc_unopt.fit(train_10pc_labelled_matrix, train_10pc_lipreader_preds_cor
 # Save
 joblib.dump(logReg_10pc_unopt, 'logReg_10pc_unopt.pkl', compress=3)
 
+# Acc
+logReg_10pc_unopt.score(train_10pc_labelled_matrix, train_10pc_lipreader_preds_correct_or_wrong[train_10pc_labelled_idx])
+logReg_10pc_unopt.score(train_10pc_unlabelled_matrix, train_10pc_lipreader_preds_correct_or_wrong[train_10pc_unlabelled_idx])
+logReg_10pc_unopt.score(val_10pc_matrix, val_10pc_lipreader_preds_correct_or_wrong)
+logReg_10pc_unopt.score(si1314_10pc_matrix, si1314_10pc_lipreader_preds_correct_or_wrong)
 # >>> # Acc
 # ... logReg_10pc_unopt.score(train_10pc_labelled_matrix, train_10pc_lipreader_preds_correct_or_wrong[train_10pc_labelled_idx])
 # 0.8651162790697674
@@ -300,11 +307,6 @@ joblib.dump(logReg_10pc_unopt, 'logReg_10pc_unopt.pkl', compress=3)
 # >>> logReg_10pc_unopt.score(si1314_10pc_matrix, si1314_10pc_lipreader_preds_correct_or_wrong)
 # 0.38466666666666666
 
-# Acc
-logReg_10pc_unopt.score(train_10pc_labelled_matrix, train_10pc_lipreader_preds_correct_or_wrong[train_10pc_labelled_idx])
-logReg_10pc_unopt.score(train_10pc_unlabelled_matrix, train_10pc_lipreader_preds_correct_or_wrong[train_10pc_unlabelled_idx])
-logReg_10pc_unopt.score(val_10pc_matrix, val_10pc_lipreader_preds_correct_or_wrong)
-logReg_10pc_unopt.score(si1314_10pc_matrix, si1314_10pc_lipreader_preds_correct_or_wrong)
 
 # CONFUSION MATRIX, OPERATING POINT
 train_10pc_l_logReg_unopt_OP_fpr, train_10pc_l_logReg_unopt_OP_tpr, \
@@ -404,7 +406,6 @@ np.savez('ROC_10pc_logReg_unopt',
 ###########################
 # OPT
 ###########################
-
 
 # score function: twice iterated 10-fold cross-validated accuracy
 @optunity.cross_validated(x=train_10pc_labelled_matrix, y=train_10pc_lipreader_preds_correct_or_wrong[train_10pc_labelled_idx], num_folds=2, num_iter=1)
