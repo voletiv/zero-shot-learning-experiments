@@ -5,6 +5,8 @@ import optunity.metrics
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_recall_curve
+from sklearn.metrics import average_precision_score
 from sklearn.externals import joblib
 
 from grid_attributes_functions import *
@@ -41,9 +43,9 @@ val_dirs = grid_basics['val_dirs']
 val_word_numbers = grid_basics['val_word_numbers']
 val_word_idx = grid_basics['val_word_idx']
 
-si_dirs = grid_basics['si_dirs']; si_dirs = si_dirs[:12000]
-si_word_numbers = grid_basics['si_word_numbers']; si_word_numbers = si_word_numbers[:12000]
-si_word_idx = grid_basics['si_word_idx']; si_word_idx = si_word_idx[:12000]
+si1314_dirs = grid_basics['si131410_dirs']; si1314_dirs = si1314_dirs[:12000]
+si1314_word_numbers = grid_basics['si131410_word_numbers']; si1314_word_numbers = si1314_word_numbers[:12000]
+si1314_word_idx = grid_basics['si131410_word_idx']; si1314_word_idx = si1314_word_idx[:12000]
 
 #############################################################
 # LOAD ATTRIBUTES
@@ -51,17 +53,27 @@ si_word_idx = grid_basics['si_word_idx']; si_word_idx = si_word_idx[:12000]
 
 train_grid_attributes = np.load('train_grid_attributes_matrix.npy')
 val_grid_attributes = np.load('val_grid_attributes_matrix.npy')
-si_grid_attributes = np.load('si_grid_attributes_matrix.npy'); si_grid_attributes = si_grid_attributes[:12000]
+si131410_grid_attributes = np.load('si131410_grid_attributes_matrix.npy'); si1314_grid_attributes = si131410_grid_attributes[:12000]
 
 # Normalization
+train_grid_attributes_peak_to_peak = train_grid_attributes.ptp(0)
+train_grid_attributes_peak_to_peak[np.argwhere(train_grid_attributes_peak_to_peak == 0)] = 1
+train_grid_attributes_norm = (train_grid_attributes - train_grid_attributes.min(0)) / train_grid_attributes_peak_to_peak
+val_grid_attributes_peak_to_peak = val_grid_attributes.ptp(0)
+val_grid_attributes_peak_to_peak[np.argwhere(val_grid_attributes_peak_to_peak == 0)] = 1
+val_grid_attributes_norm = (val_grid_attributes - val_grid_attributes.min(0)) / val_grid_attributes_peak_to_peak
+si1314_grid_attributes_peak_to_peak = si1314_grid_attributes.ptp(0)
+si1314_grid_attributes_peak_to_peak[np.argwhere(si1314_grid_attributes_peak_to_peak == 0)] = 1
+si1314_grid_attributes_norm = (si1314_grid_attributes - si1314_grid_attributes.min(0)) / si1314_grid_attributes_peak_to_peak
+
 train_grid_attributes_norm = (train_grid_attributes - train_grid_attributes.min(0)) / train_grid_attributes.ptp(0)
 val_grid_attributes_norm = (val_grid_attributes - val_grid_attributes.min(0)) / val_grid_attributes.ptp(0)
-si_grid_attributes_norm = (si_grid_attributes - si_grid_attributes.min(0)) / si_grid_attributes.ptp(0); si_grid_attributes_norm[:, 1] = 1.
+si1314_grid_attributes_norm = (si1314_grid_attributes - si1314_grid_attributes.min(0)) / si1314_grid_attributes.ptp(0); si1314_grid_attributes_norm[:, 1] = 1.
 
 # Leave out the first three attributes
 train_matrix = train_grid_attributes_norm[:, 3:]
 val_matrix = val_grid_attributes_norm[:, 3:]
-si_matrix = si_grid_attributes_norm[:, 3:]
+si1314_matrix = si1314_grid_attributes_norm[:, 3:]
 
 # # Check correlation between attributes
 # plt.imshow(np.abs(np.corrcoef(train_grid_attributes.T)), cmap='gray', clim=[0, 1]); plt.title("Attributes correlation"); plt.show()
@@ -76,15 +88,15 @@ si_matrix = si_grid_attributes_norm[:, 3:]
 # LOAD CORRECT_OR_NOT
 #############################################################
 
-lipreader_preds_wordidx_and_correctorwrong = np.load('lipreader_preds_wordidx_and_correctorwrong.npy').item()
+lipreader_preds_wordidx_and_correctorwrong = np.load('lipreader_preds_predWordIdx_correctOrNot.npz')
 
 train_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_word_idx']
 val_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_word_idx']
-si_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_word_idx']; si_lipreader_preds_word_idx = si_lipreader_preds_word_idx[:12000]
+si1314_lipreader_preds_word_idx = lipreader_preds_wordidx_and_correctorwrong['si1314_lipreader_preds_word_idx']
 
 train_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds_correct_or_wrong']
 val_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds_correct_or_wrong']
-si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si_lipreader_preds_correct_or_wrong']; si_lipreader_preds_correct_or_wrong = si_lipreader_preds_correct_or_wrong[:12000]
+si1314_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong['si1314_lipreader_preds_correct_or_wrong']
 
 # >>> np.sum(train_lipreader_preds_correct_or_wrong)/len(train_lipreader_preds_correct_or_wrong)
 # 0.92210520716983135
@@ -97,11 +109,11 @@ si_lipreader_preds_correct_or_wrong = lipreader_preds_wordidx_and_correctorwrong
 # LOAD LIPREADER PREDS
 #############################################################
 
-lipreader_preds = np.load('lipreader_preds.npz')
+# lipreader_preds = np.load('lipreader_preds.npz')
 
-train_lipreader_preds = lipreader_preds['train_lipreader_preds']
-val_lipreader_preds = lipreader_preds['val_lipreader_preds']
-si_lipreader_preds = lipreader_preds['si_lipreader_preds']; si_lipreader_preds = si_lipreader_preds[:12000]
+train_lipreader_preds = lipreader_preds_wordidx_and_correctorwrong['train_lipreader_preds']
+val_lipreader_preds = lipreader_preds_wordidx_and_correctorwrong['val_lipreader_preds']
+si1314_lipreader_preds = lipreader_preds_wordidx_and_correctorwrong['si131410_lipreader_preds']; si1314_lipreader_preds = si1314_lipreader_preds[:12000]
 
 #############################################################
 # LOAD CRITIC PREDS
@@ -111,7 +123,7 @@ critic_preds = np.load('critic_preds.npz')
 
 train_critic_preds = critic_preds['train_critic_preds']
 val_critic_preds = critic_preds['val_critic_preds']
-si_critic_preds = critic_preds['si_critic_preds']; si_critic_preds = si_critic_preds[:12000]
+si1314_critic_preds = critic_preds['si1314_critic_preds']
 
 #############################################################
 # LIPREADER ROC
@@ -134,6 +146,51 @@ np.savez('ROC_baseline_lipreader',
     # train_lipreader_OP_fpr=train_lipreader_OP_fpr, train_lipreader_OP_tpr=train_lipreader_OP_tpr,
     # val_lipreader_OP_fpr=val_lipreader_OP_fpr, val_lipreader_OP_tpr=val_lipreader_OP_tpr,
     # si_lipreader_OP_fpr=si_lipreader_OP_fpr, si_lipreader_OP_tpr=si_lipreader_OP_tpr)
+
+#############################################################
+# LIPREADER PR CURVE
+#############################################################
+
+train_lipreader_recall_OP, train_lipreader_precision_OP, train_lipreader_precision, train_lipreader_recall, train_lipreader_average_precision = \
+    compute_grid_multiclass_PR_plot_curve(train_word_idx, train_lipreader_preds, train_lipreader_preds_word_idx, plotCurve=True)
+# Recall_OP["micro"]: 0.92, Precision_OP["micro"]: 0.92
+# Recall_OP["macro"]: 0.85, Precision_OP["macro"]: 0.87
+# precision from sklearn at recall_OP["micro"]: 1.00
+# Average precision score, micro-averaged over all classes: 0.98
+
+val_lipreader_recall_OP, val_lipreader_precision_OP, val_lipreader_precision, val_lipreader_recall, val_lipreader_average_precision = \
+    compute_grid_multiclass_PR_plot_curve(val_word_idx, val_lipreader_preds, val_lipreader_preds_word_idx, plotCurve=True)
+
+
+
+si1314_lipreader_recall_OP, si1314_lipreader_precision_OP, si1314_lipreader_precision, si1314_lipreader_recall, si1314_lipreader_average_precision = \
+    compute_grid_multiclass_PR_plot_curve(si1314_word_idx, si1314_lipreader_preds, si1314_lipreader_preds_word_idx, plotCurve=True)
+
+
+#############################################################
+# CRITIC PR CURVE
+#############################################################
+
+train_critic_recall_OP, train_critic_precision_OP, train_critic_precision, train_critic_recall, train_critic_average_precision = \
+    compute_grid_singleclass_PR_plot_curve(train_lipreader_preds_correct_or_wrong, train_critic_preds, plotCurve=True)
+# recall_OP: 0.64, precision_OP: 0.96
+# precision from sklearn at recall_OP: 1.00
+# Average precision-recall score: 0.97
+
+val_critic_recall_OP, val_critic_precision_OP, val_critic_precision, val_critic_recall, val_critic_average_precision = \
+    compute_grid_singleclass_PR_plot_curve(val_lipreader_preds_correct_or_wrong, val_critic_preds, plotCurve=True)
+# recall_OP: 0.64, precision_OP: 0.96
+# precision from sklearn at recall_OP: 1.00
+# Average precision-recall score: 0.97
+
+si1314_critic_recall_OP, si1314_critic_precision_OP, si1314_critic_precision, si1314_critic_recall, si1314_critic_average_precision = \
+    compute_grid_singleclass_PR_plot_curve(si1314_lipreader_preds_correct_or_wrong, si1314_critic_preds, plotCurve=True)
+# recall_OP: 0.64, precision_OP: 0.96
+# precision from sklearn at recall_OP: 1.00
+# Average precision-recall score: 0.97
+
+
+
 
 #############################################################
 # CRITIC ROC

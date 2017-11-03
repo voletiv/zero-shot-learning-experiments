@@ -190,7 +190,7 @@ train_lipreader_10pc_unl_preds = train_lipreader_10pc_preds[train_10pc_unlabelle
 lipreader_train_10pc_l_fpr, lipreader_train_10pc_l_tpr, lipreader_train_10pc_l_roc_auc, \
         lipreader_train_10pc_unl_fpr, lipreader_train_10pc_unl_tpr, lipreader_train_10pc_unl_roc_auc, \
         lipreader_val_10pc_fpr, lipreader_val_10pc_tpr, lipreader_val_10pc_roc_auc, \
-        lipreader_si_10pc_fpr, lipreader_si_10pc_tpr, lipreader_si_10pc_roc_auc = \
+        lipreader_si1314_10pc_fpr, lipreader_si1314_10pc_tpr, lipreader_si1314_10pc_roc_auc = \
     compute_pc_ROC_grid_multiclass(train_10pc_labelled_word_idx, train_lipreader_10pc_l_preds,
         train_10pc_unlabelled_word_idx, train_lipreader_10pc_unl_preds,
         val_10pc_word_idx, val_lipreader_10pc_preds,
@@ -215,7 +215,7 @@ np.savez('ROC_baseline_lipreader',
 
 # train_10pc_lipreader_64_features = lipreader_10pc_64_features['train_10pc_lipreader_64_features']
 # val_10pc_lipreader_64_features = lipreader_10pc_64_features['val_10pc_lipreader_64_features']
-# si131410_10pc_lipreader_64_features = lipreader_10pc_64_features['si_10pc_lipreader_64_features']
+# si131410_10pc_lipreader_64_features = lipreader_10pc_64_features['si1314_10pc_lipreader_64_features']
 
 # train_val_10pc_lipreader_64_features = np.vstack((train_10pc_lipreader_64_features, val_10pc_lipreader_64_features, si131410_10pc_lipreader_64_features[12000:]))
 # si1314_10pc_lipreader_64_features = si131410_10pc_lipreader_64_features[:12000]
@@ -262,7 +262,7 @@ si1314_10pc_grid_attributes[:, -64:] = si1314_10pc_lipreader_64_features
 # Normalization
 train_10pc_grid_attributes_peak_to_peak = train_10pc_grid_attributes.ptp(0)
 train_10pc_grid_attributes_peak_to_peak[np.argwhere(train_10pc_grid_attributes_peak_to_peak == 0)] = 1
-train_10pc_grid_attributes_norm = (train_10pc_grid_attributes - train_grid_attributes.min(0)) / train_10pc_grid_attributes_peak_to_peak
+train_10pc_grid_attributes_norm = (train_10pc_grid_attributes - train_10pc_grid_attributes.min(0)) / train_10pc_grid_attributes_peak_to_peak
 val_10pc_grid_attributes_peak_to_peak = val_10pc_grid_attributes.ptp(0)
 val_10pc_grid_attributes_peak_to_peak[np.argwhere(val_10pc_grid_attributes_peak_to_peak == 0)] = 1
 val_10pc_grid_attributes_norm = (val_10pc_grid_attributes - val_10pc_grid_attributes.min(0)) / val_10pc_grid_attributes_peak_to_peak
@@ -533,26 +533,32 @@ np.savez('ROC_10pc_logReg_opt',
 # Load
 logReg_opt = joblib.load('logReg_opt.pkl')
 ROC_10pc_logReg_opt = np.load('ROC_10pc_logReg_opt.npz')
-train_10pc_logReg_opt_score, val_10pc_logReg_opt_score, si_10pc_logReg_opt_score, \
-        train_10pc_logReg_opt_fpr, train_10pc_logReg_opt_tpr, train_10pc_logReg_opt_thresholds, train_10pc_logReg_opt_roc_auc, \
+train_10pc_l_logReg_opt_score, train_10pc_unl_logReg_opt_score, val_10pc_logReg_opt_score, si1314_10pc_logReg_opt_score, \
+        train_10pc_l_logReg_opt_fpr, train_10pc_l_logReg_opt_tpr, train_10pc_l_logReg_opt_thresholds, train_10pc_l_logReg_opt_roc_auc, \
+        train_10pc_unl_logReg_opt_fpr, train_10pc_unl_logReg_opt_tpr, train_10pc_unl_logReg_opt_thresholds, train_10pc_unl_logReg_opt_roc_auc, \
         val_10pc_logReg_opt_fpr, val_10pc_logReg_opt_tpr, val_10pc_logReg_opt_thresholds, val_10pc_logReg_opt_roc_auc, \
-        si_10pc_logReg_opt_fpr, si_10pc_logReg_opt_tpr, si_10pc_logReg_opt_thresholds, si_10pc_logReg_opt_roc_auc , \
-        train_10pc_logReg_opt_OP_fpr, train_10pc_logReg_opt_OP_tpr, \
+        si1314_10pc_logReg_opt_fpr, si1314_10pc_logReg_opt_tpr, si1314_10pc_logReg_opt_thresholds, si1314_10pc_logReg_opt_roc_auc , \
+        train_10pc_l_logReg_opt_OP_fpr, train_10pc_l_logReg_opt_OP_tpr, \
+        train_10pc_unl_logReg_opt_OP_fpr, train_10pc_unl_logReg_opt_OP_tpr, \
         val_10pc_logReg_opt_OP_fpr, val_10pc_logReg_opt_OP_tpr, \
-        si_10pc_logReg_opt_OP_fpr, si_10pc_logReg_opt_OP_tpr, \
-        train_10pc_logReg_opt_optimalOP_fpr, train_10pc_logReg_opt_optimalOP_tpr, \
+        si1314_10pc_logReg_opt_OP_fpr, si1314_10pc_logReg_opt_OP_tpr, \
+        train_10pc_l_logReg_opt_optimalOP_fpr, train_10pc_l_logReg_opt_optimalOP_tpr, \
+        train_10pc_unl_logReg_opt_optimalOP_fpr, train_10pc_unl_logReg_opt_optimalOP_tpr, \
         val_10pc_logReg_opt_optimalOP_fpr, val_10pc_logReg_opt_optimalOP_tpr, \
-        si_10pc_logReg_opt_optimalOP_fpr, si_10pc_logReg_opt_optimalOP_tpr = \
-    ROC_10pc_logReg_opt['train_10pc_logReg_opt_score'], ROC_10pc_logReg_opt['val_10pc_logReg_opt_score'], ROC_10pc_logReg_opt['si_10pc_logReg_opt_score'], \
-        ROC_10pc_logReg_opt['train_10pc_logReg_opt_fpr'], ROC_10pc_logReg_opt['train_10pc_logReg_opt_tpr'], ROC_10pc_logReg_opt['train_10pc_logReg_opt_thresholds'], ROC_10pc_logReg_opt['train_10pc_logReg_opt_roc_auc'].item(), \
+        si1314_10pc_logReg_opt_optimalOP_fpr, si1314_10pc_logReg_opt_optimalOP_tpr = \
+    ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_score'], ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_score'], ROC_10pc_logReg_opt['val_10pc_logReg_opt_score'], ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_score'], \
+        ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_fpr'], ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_tpr'], ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_thresholds'], ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_roc_auc'].item(), \
+        ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_fpr'], ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_tpr'], ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_thresholds'], ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_roc_auc'].item(), \
         ROC_10pc_logReg_opt['val_10pc_logReg_opt_fpr'], ROC_10pc_logReg_opt['val_10pc_logReg_opt_tpr'], ROC_10pc_logReg_opt['val_10pc_logReg_opt_thresholds'], ROC_10pc_logReg_opt['val_10pc_logReg_opt_roc_auc'].item(), \
-        ROC_10pc_logReg_opt['si_10pc_logReg_opt_fpr'], ROC_10pc_logReg_opt['si_10pc_logReg_opt_tpr'], ROC_10pc_logReg_opt['si_10pc_logReg_opt_thresholds'], ROC_10pc_logReg_opt['si_10pc_logReg_opt_roc_auc'].item(), \
-        ROC_10pc_logReg_opt['train_10pc_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_logReg_opt_OP_tpr'].item(), \
+        ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_fpr'], ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_tpr'], ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_thresholds'], ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_roc_auc'].item(), \
+        ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_OP_tpr'].item(), \
+        ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_OP_tpr'].item(), \
         ROC_10pc_logReg_opt['val_10pc_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['val_10pc_logReg_opt_OP_tpr'].item(), \
-        ROC_10pc_logReg_opt['si_10pc_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['si_10pc_logReg_opt_OP_tpr'].item(), \
-        ROC_10pc_logReg_opt['train_10pc_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_logReg_opt_optimalOP_tpr'].item(), \
+        ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_OP_fpr'].item(), ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_OP_tpr'].item(), \
+        ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_l_logReg_opt_optimalOP_tpr'].item(), \
+        ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['train_10pc_unl_logReg_opt_optimalOP_tpr'].item(), \
         ROC_10pc_logReg_opt['val_10pc_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['val_10pc_logReg_opt_optimalOP_tpr'].item(), \
-        ROC_10pc_logReg_opt['si_10pc_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['si_10pc_logReg_opt_optimalOP_tpr'].item()
+        ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_optimalOP_fpr'].item(), ROC_10pc_logReg_opt['si1314_10pc_logReg_opt_optimalOP_tpr'].item()
 
 
 

@@ -17,6 +17,111 @@ from sklearn.metrics import confusion_matrix
 from grid_attributes_params import *
 
 
+def compute_grid_multiclass_PR_plot_curve(correct_word_idx, preds, preds_word_idx, plotCurve=False):
+    # correct_word_idx === n, {0...50}
+    # preds === nxv [0, 1]
+    # preds_word_idx === n, {0...50}
+    # Y_test === nxv {0, 1}
+    # y_score === nxv [0, 1]
+    n_classes = correct_word_idx.max() + 1
+    Y_test = label_binarize(correct_word_idx, classes=range(n_classes))
+    y_score = preds
+    y_pred = label_binarize(preds_word_idx, classes=range(n_classes))
+    # TN, TP, FN, FP
+    tn = {}
+    fp = {}
+    fn = {}
+    tp = {}
+    # Micro
+    tn["micro"], fp["micro"], fn["micro"], tp["micro"] = \
+        confusion_matrix(Y_test.ravel(), y_pred.ravel()).ravel()
+    # OP
+    recall_OP = {}
+    recall_OP["micro"] = tp["micro"] / (tp["micro"] + fn["micro"])
+    precision_OP = {}
+    precision_OP["micro"] = tp["micro"] / (tp["micro"] + fp["micro"])
+    print('Recall_OP["micro"]: {0:0.2f}, Precision_OP["micro"]: {1:0.2f}'.format(recall_OP["micro"], precision_OP["micro"]))
+    # Macro
+    recall_OP["macro"] = 0
+    precision_OP["macro"] = 0
+    for i in range(n_classes):
+        tn[i], fp[i], fn[i], tp[i] = confusion_matrix(Y_test[:, i], y_pred[:, i]).ravel()
+        recall_OP[i] = tp[i] / (tp[i] + fn[i])
+        recall_OP["macro"] += recall_OP[i]
+        precision_OP[i] = tp[i] / (tp[i] + fp[i])
+        precision_OP["macro"] += precision_OP[i]
+    # Print
+    recall_OP["macro"] /= n_classes
+    precision_OP["macro"] /= n_classes
+    print('Recall_OP["macro"]: {0:0.2f}, Precision_OP["macro"]: {1:0.2f}'.format(recall_OP["macro"], precision_OP["macro"]))
+    # sklearn
+    # For each class
+    precision = dict()
+    recall = dict()
+    average_precision = dict()
+    n_classes = Y_test.shape[1]
+    for i in range(n_classes):
+        precision[i], recall[i], _ = precision_recall_curve(Y_test[:, i],
+                                                            y_score[:, i])
+        average_precision[i] = average_precision_score(Y_test[:, i], y_score[:, i])
+    # A "micro-average": quantifying score on all classes jointly
+    precision["micro"], recall["micro"], _ = precision_recall_curve(Y_test.ravel(),
+        y_score.ravel())
+    average_precision["micro"] = average_precision_score(Y_test, y_score,
+                                                         average="micro")
+    precision_OP = interp(recall_OP["micro"], recall["micro"], precision["micro"])
+    print('precision from sklearn at recall_OP["micro"]: {0:0.2f}'.format(precision_OP))
+    print('Average precision score, micro-averaged over all classes: {0:0.2f}'
+          .format(average_precision["micro"]))
+    # Average precision score, micro-averaged over all classes: 0.98
+    if plotCurve:
+        # PLOT
+        plt.figure()
+        plt.step(recall['micro'], precision['micro'], color='b', alpha=0.2,
+                 where='post')
+        plt.fill_between(recall["micro"], precision["micro"], step='post', alpha=0.2,
+                         color='b')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title(
+            'Average precision score, micro-averaged over all classes: AP={0:0.2f}'
+            .format(average_precision["micro"]))
+        plt.show()
+        plt.close()
+    # Return
+    return recall_OP, precision_OP, precision, recall, average_precision
+
+
+def compute_grid_singleclass_PR_plot_curve(preds_correct_or_wrong, preds, plotCurve=False):
+    y_test = preds_correct_or_wrong
+    y_score = preds
+    tn, fp, fn, tp = confusion_matrix(y_test, y_score > .5).ravel()
+    recall_OP = tp / (tp + fn)
+    precision_OP = tp / (tp + fp)
+    print("recall_OP: {0:0.2f}, precision_OP: {1:0.2f}".format(recall_OP, precision_OP))
+    average_precision = average_precision_score(y_test, y_score)
+    precision, recall, _ = precision_recall_curve(y_test, y_score)
+    p = interp(recall_OP, recall, precision)
+    print('precision from sklearn at recall_OP: {0:0.2f}'.format(p))
+    print('Average precision-recall score: {0:0.2f}'.format(average_precision))
+    if plotCurve:
+        plt.step(recall, precision, color='b', alpha=0.2,
+                 where='post')
+        plt.fill_between(recall, precision, step='post', alpha=0.2,
+                         color='b')
+        plt.xlabel('Recall')
+        plt.ylabel('Precision')
+        plt.ylim([0.0, 1.05])
+        plt.xlim([0.0, 1.0])
+        plt.title('2-class Precision-Recall curve: AP={0:0.2f}'.format(
+                  average_precision))
+        plt.show()
+        plt.close()
+    return recall_OP, precision_OP, recall, precision, average_precision
+
+
 def plot_grid_ROC(train_fpr, train_tpr, train_roc_auc,
         val_fpr, val_tpr, val_roc_auc,
         si_fpr, si_tpr, si_roc_auc,
@@ -250,9 +355,9 @@ def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
                 si_word_idx, si_confidences,
                 savePlot=False, showPlot=False,
                 plot_title='ROC curve of linear SVM unoptimized'):
-    train_fpr, train_tpr, train_roc_auc = compute_ROC_multiclass(label_binarize(train_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), train_confidences, len(GRID_VOCAB_FULL))
-    val_fpr, val_tpr, val_roc_auc = compute_ROC_multiclass(label_binarize(val_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), val_confidences, len(GRID_VOCAB_FULL))
-    si_fpr, si_tpr, si_roc_auc = compute_ROC_multiclass(label_binarize(si_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), si_confidences, len(GRID_VOCAB_FULL))
+    train_fpr, train_tpr, train_roc_auc = compute_ROC_multiclass(label_binarize(train_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), train_confidences)
+    val_fpr, val_tpr, val_roc_auc = compute_ROC_multiclass(label_binarize(val_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), val_confidences)
+    si_fpr, si_tpr, si_roc_auc = compute_ROC_multiclass(label_binarize(si_word_idx, classes=np.arange(len(GRID_VOCAB_FULL))), si_confidences)
     if showPlot or savePlot:
         plt.plot(train_fpr['micro'], train_tpr['micro'], color='C0', linestyle='-', label='train_micro; AUC={0:0.4f}'.format(train_roc_auc['micro']))
         plt.plot(train_fpr['macro'], train_tpr['macro'], color='C0', linestyle='--', label='train_macro; AUC={0:0.4f}'.format(train_roc_auc['macro']))
@@ -272,12 +377,13 @@ def compute_ROC_grid_multiclass(train_word_idx, train_confidences,
         plt.close()
     return train_fpr, train_tpr, train_roc_auc, val_fpr, val_tpr, val_roc_auc, si_fpr, si_tpr, si_roc_auc
 
-def compute_ROC_multiclass(y_test, y_score, n_classes):
+def compute_ROC_multiclass(y_test, y_score):
     # y_test == nxv one-hot
     # y_score == nxv full softmax scores
     fpr = {}
     tpr = {}
     roc_auc = {}
+    n_classes = y_test.shape[1]
     for i in range(n_classes):
         fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
         roc_auc[i] = auc(fpr[i], tpr[i])
@@ -293,6 +399,7 @@ def compute_ROC_multiclass(y_test, y_score, n_classes):
         mean_tpr += interp(all_fpr, fpr[i], tpr[i])
     # Finally average it
     mean_tpr /= n_classes
+    mean_tpr[0] = 0
     # compute AUC
     fpr['macro'] = all_fpr
     tpr['macro'] = mean_tpr
@@ -400,7 +507,7 @@ def make_LSTMlipreader_predictions(lipreader_preds,
                                    word_numbers,
                                    word_idx,
                                    lipreader,
-                                   lipreaderEncoder
+                                   lipreaderEncoder,
                                    grid_vocab=GRID_VOCAB_FULL,
                                    startNum=0):
     # dirs = train_val_dirs
